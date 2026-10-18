@@ -404,9 +404,23 @@ public struct FeedbackBoardView: View {
         .listRowInsets(EdgeInsets(top: 3, leading: 8, bottom: 3, trailing: 8))
         .rowActions { rowMenu(for: request) }
 #else
-        NavigationLink { RequestDetailView(store: store, request: request, embedsNavigationStack: false) }
-            label: { content }
-            .rowActions { rowMenu(for: request) }
+        // 卡片样式：隐藏的 NavigationLink 垫在底下负责跳转，这样行尾不会出现系统箭头。
+        ZStack {
+
+            NavigationLink { RequestDetailView(store: store, request: request, embedsNavigationStack: false) }
+                label: { EmptyView() }
+                .opacity(0)
+
+            content
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .secondarySystemGroupedBackground),
+                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+        .rowActions { rowMenu(for: request) }
 #endif
     }
 

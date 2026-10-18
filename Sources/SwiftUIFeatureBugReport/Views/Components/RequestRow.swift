@@ -72,6 +72,7 @@ struct RequestRow: View {
                        hasVoted: hasVoted,
                        isBusy: isVoting,
                        isEnabled: canVote,
+                       confirms: true,
                        action: onVote)
         }
         .padding(.vertical, 2)

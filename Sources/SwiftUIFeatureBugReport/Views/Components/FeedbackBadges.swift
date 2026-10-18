@@ -101,11 +101,15 @@ struct VoteButton: View {
     let hasVoted: Bool
     let isBusy: Bool
     let isEnabled: Bool
+    /// 为 true 时点击先弹出二次确认，确认后才执行 `action`（列表卡片上容易误触）。
+    var confirms: Bool = false
     let action: () -> Void
+
+    @State private var isConfirming = false
 
     var body: some View {
 
-        Button(action: action) {
+        Button(action: { if confirms { isConfirming = true } else { action() } }) {
 
             HStack(spacing: 4) {
 
@@ -117,21 +121,29 @@ struct VoteButton: View {
                 else {
 
                     Image(systemName: hasVoted ? "hand.thumbsup.fill" : "hand.thumbsup")
-                        .font(.body)
                 }
 
                 Text(count.formatted(.number))
                     .monospacedDigit()
             }
-            .font(.body.weight(.medium))
+            .font(.subheadline.weight(.medium))
             .foregroundStyle(hasVoted ? Color.green : Color.accentColor)
             // 胶囊底色，让投票入口在行内更醒目、点击区域更大
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background((hasVoted ? Color.green : Color.accentColor).opacity(0.12), in: Capsule())
             .contentShape(Capsule())
         }
         .buttonStyle(.borderless)
+        .confirmationDialog(hasVoted ? "Withdraw your vote?" : "Vote for this request?",
+                            isPresented: $isConfirming,
+                            titleVisibility: .visible) {
+
+            if hasVoted { Button("Withdraw vote", role: .destructive, action: action) }
+            else { Button("Vote", action: action) }
+
+            Button("Cancel", role: .cancel) {}
+        }
         // Tappable while voted: the button toggles, so a mis-tap or a change of mind is recoverable.
         .disabled(isBusy || !isEnabled)
         .accessibilityLabel(hasVoted
