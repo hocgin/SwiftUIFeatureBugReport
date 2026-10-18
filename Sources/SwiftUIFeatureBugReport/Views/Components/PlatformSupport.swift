@@ -49,7 +49,7 @@ extension View {
                 ToolbarItem(placement: .automatic) {
 
                     Button(action: { Task { await action() } },
-                           label: { Label("Refresh", systemImage: "arrow.clockwise") })
+                           label: { Label(L10n.t("feedback.common.refresh"), systemImage: "arrow.clockwise") })
                 }
             }
         #else
@@ -65,7 +65,7 @@ extension View {
     /// preference wins. Not setting it at all is the only thing that reliably does.
     ///
     /// iOS always pushes onto a stack that belongs to the screen, so the title is always its own.
-    @ViewBuilder func ownedNavigationTitle(_ title: LocalizedStringKey, ownsStack: Bool) -> some View {
+    @ViewBuilder func ownedNavigationTitle(_ title: String, ownsStack: Bool) -> some View {
 
         #if os(macOS)
         if ownsStack { self.navigationTitle(title) } else { self }
@@ -107,7 +107,7 @@ extension View {
 /// goes through this rather than repeating the workaround.
 struct FeedbackTextEditor: View {
 
-    let placeholder: LocalizedStringKey
+    let placeholder: String
     @Binding var text: String
     var minHeight: CGFloat = 110
 

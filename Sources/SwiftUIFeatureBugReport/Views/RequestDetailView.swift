@@ -80,8 +80,8 @@ public struct RequestDetailView: View {
 
             Section {
 
-                LabeledContent("Votes", value: store.votes.tally(for: request.id).formatted(.number))
-                LabeledContent("Submitted", value: request.createdAt.formatted(date: .abbreviated, time: .omitted))
+                LabeledContent(L10n.t("feedback.common.votes"), value: store.votes.tally(for: request.id).formatted(.number))
+                LabeledContent(L10n.t("feedback.detail.submitted"), value: request.createdAt.formatted(date: .abbreviated, time: .omitted))
             }
 
             commentSection
@@ -123,14 +123,14 @@ public struct RequestDetailView: View {
 
         .sheet(isPresented: $showingReport) { reportSheet }
 
-        .confirmationDialog("Mark this complete?",
+        .confirmationDialog(L10n.t("feedback.detail.markCompleteTitle"),
                             isPresented: $showingCompleteConfirmation,
                             titleVisibility: .visible) {
 
-            Button("Mark complete") { Task { await markComplete() } }
-            Button("Cancel", role: .cancel) { }
+            Button(L10n.t("feedback.detail.markComplete")) { Task { await markComplete() } }
+            Button(L10n.t("feedback.common.cancel"), role: .cancel) { }
 
-        } message: { Text("This tells everyone the request has been dealt with. You can't undo it from here.") }
+        } message: { Text(L10n.t("feedback.detail.markCompleteMessage")) }
     }
 
     // MARK: - Sections
@@ -145,7 +145,7 @@ public struct RequestDetailView: View {
             // reads as a failed submission, and the user files it again.
             Section {
 
-                Label("Image awaiting review", systemImage: "clock")
+                Label(L10n.t("feedback.detail.imagePending"), systemImage: "clock")
                     .foregroundStyle(.secondary)
             }
 
@@ -153,7 +153,7 @@ public struct RequestDetailView: View {
 
             Section {
 
-                Label("Image removed by the developer", systemImage: "photo.badge.exclamationmark")
+                Label(L10n.t("feedback.detail.imageRejected"), systemImage: "photo.badge.exclamationmark")
                     .foregroundStyle(.secondary)
             }
 
@@ -176,11 +176,11 @@ public struct RequestDetailView: View {
 
             if store.comments.isLoading {
 
-                HStack { ProgressView(); Text("Loading replies…") }
+                HStack { ProgressView(); Text(L10n.t("feedback.detail.loadingReplies")) }
             }
             else if store.comments.comments.isEmpty {
 
-                Text("No replies yet")
+                Text(L10n.t("feedback.detail.noRepliesYet"))
                     .foregroundStyle(.secondary)
             }
             else {
@@ -191,20 +191,20 @@ public struct RequestDetailView: View {
                 }
             }
 
-        } header: { Text("Replies") }
+        } header: { Text(L10n.t("feedback.common.replies")) }
     }
 
     @ViewBuilder private var replySection: some View {
 
         Section {
 
-            FeedbackTextEditor(placeholder: "Add a reply", text: $reply, minHeight: 80)
+            FeedbackTextEditor(placeholder: L10n.t("feedback.detail.addReplyPlaceholder"), text: $reply, minHeight: 80)
 
             Button(action: { sendReply() }) {
 
                 HStack {
 
-                    Text("Send reply")
+                    Text(L10n.t("feedback.detail.sendReply"))
 
                     if isSendingReply { Spacer(); ProgressView().controlSize(.small) }
                 }
@@ -213,9 +213,14 @@ public struct RequestDetailView: View {
 
         } footer: {
 
-            Text(store.container.isDeveloper
-                 ? "Posted as the developer."
-                 : "Only you and the developer can reply here.")
+            // Separate `Text`s rather than a ternary: a ternary of literals resolves to the verbatim
+            // `String` overload of `Text`, which never reaches a catalogue.
+            if store.container.isDeveloper {
+                Text(L10n.t("feedback.detail.postedAsDeveloper"))
+            }
+            else {
+                Text(L10n.t("feedback.detail.replyFooterUser"))
+            }
         }
     }
 
@@ -227,7 +232,7 @@ public struct RequestDetailView: View {
 
                 Section {
 
-                    Picker("Reason", selection: $reportCategory) {
+                    Picker(L10n.t("feedback.report.reason"), selection: $reportCategory) {
 
                         ForEach(ReportCategory.allCases, id: \.self) {
 
@@ -235,22 +240,22 @@ public struct RequestDetailView: View {
                         }
                     }
 
-                } header: { Text("Reason") }
-                  footer: { Text("It stops showing for you straight away. Reports are reviewed by the developer.") }
+                } header: { Text(L10n.t("feedback.report.reason")) }
+                  footer: { Text(L10n.t("feedback.report.reasonFooter")) }
             }
             .formStyle(.grouped)
-            .navigationTitle("Report")
+            .navigationTitle(L10n.t("feedback.report.title"))
             .inlineNavigationTitle()
             .toolbar {
 
                 ToolbarItem(placement: toolbarLeadingPlacement) {
 
-                    Button("Cancel", role: .cancel) { showingReport = false }
+                    Button(L10n.t("feedback.common.cancel"), role: .cancel) { showingReport = false }
                 }
 
                 ToolbarItem(placement: toolbarTrailingPlacement) {
 
-                    Button("Report") { submitReport() }
+                    Button(L10n.t("feedback.report.title")) { submitReport() }
                 }
             }
         }
@@ -278,13 +283,13 @@ public struct RequestDetailView: View {
                     Section {
 
                         Button(action: { showingEdit = true },
-                               label: { Label("Edit", systemImage: "pencil") })
+                               label: { Label(L10n.t("feedback.edit.title"), systemImage: "pencil") })
                             .disabled(!store.canEdit(request))
 
                         if request.status != .complete {
 
                             Button(action: { showingCompleteConfirmation = true },
-                                   label: { Label("Mark complete", systemImage: "checkmark") })
+                                   label: { Label(L10n.t("feedback.detail.markComplete"), systemImage: "checkmark") })
                         }
                     }
                 }
@@ -293,7 +298,7 @@ public struct RequestDetailView: View {
 
                     Button(action: { toggleFollow() }) {
 
-                        Label(store.follows.isFollowing(request.id) ? "Following" : "Follow",
+                        Label(store.follows.isFollowing(request.id) ? L10n.t("feedback.common.following") : L10n.t("feedback.common.follow"),
                               systemImage: store.follows.isFollowing(request.id) ? "bell.fill" : "bell")
                     }
                     .disabled(!store.canWrite)
@@ -302,18 +307,18 @@ public struct RequestDetailView: View {
                 Section {
 
                     Button(role: .destructive, action: { showingReport = true },
-                           label: { Label("Report", systemImage: "flag") })
+                           label: { Label(L10n.t("feedback.report.title"), systemImage: "flag") })
                         .disabled(!store.canWrite || store.reports.hasReported(request.id))
 
                     if !request.creatorID.isEmpty && !store.isMine(request) {
 
                         Button(role: .destructive, action: { store.reports.block(author: request.creatorID) },
-                               label: { Label("Block this author", systemImage: "person.slash") })
+                               label: { Label(L10n.t("feedback.report.blockAuthor"), systemImage: "person.slash") })
                             .disabled(store.reports.isBlocked(request.creatorID))
                     }
                 }
 
-            } label: { Label("Options", systemImage: "ellipsis.circle") }
+            } label: { Label(L10n.t("feedback.common.options"), systemImage: "ellipsis.circle") }
         }
     }
 
@@ -437,7 +442,7 @@ struct CommentRow: View {
                 Image(systemName: comment.isDeveloper ? "checkmark.seal.fill" : "person.circle.fill")
                     .foregroundStyle(comment.isDeveloper ? Color.accentColor : Color.secondary)
 
-                Text(comment.isDeveloper ? "Developer" : "Author")
+                Text(comment.isDeveloper ? L10n.t("feedback.common.developer") : L10n.t("feedback.common.author"))
                     .font(.subheadline.weight(.semibold))
 
                 Spacer()
@@ -484,29 +489,29 @@ struct EditRequestView: View {
 
             Form {
 
-                Section { TextField("Title", text: $title) } header: { Text("Title") }
+                Section { TextField(L10n.t("feedback.common.title"), text: $title) } header: { Text(L10n.t("feedback.common.title")) }
 
                 Section {
 
-                    FeedbackTextEditor(placeholder: "Details", text: $body_)
+                    FeedbackTextEditor(placeholder: L10n.t("feedback.common.details"), text: $body_)
 
-                } header: { Text("Details") }
+                } header: { Text(L10n.t("feedback.common.details")) }
 
                 if let error { Section { FeedbackErrorBanner(error: error, retry: nil) } }
             }
             .formStyle(.grouped)
-            .navigationTitle("Edit")
+            .navigationTitle(L10n.t("feedback.edit.title"))
             .inlineNavigationTitle()
             .toolbar {
 
                 ToolbarItem(placement: toolbarLeadingPlacement) {
 
-                    Button("Cancel", role: .cancel) { dismiss() }
+                    Button(L10n.t("feedback.common.cancel"), role: .cancel) { dismiss() }
                 }
 
                 ToolbarItem(placement: toolbarTrailingPlacement) {
 
-                    Button("Save") { save() }
+                    Button(L10n.t("feedback.common.save")) { save() }
                         .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                   || body_.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                   || isSaving)

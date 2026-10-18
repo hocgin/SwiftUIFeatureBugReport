@@ -59,7 +59,7 @@ struct RequestRow: View {
 
                         if request.imageState == .pending {
 
-                            Label("Image in review", systemImage: "clock")
+                            Label(L10n.t("feedback.badge.imageInReview"), systemImage: "clock")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -149,7 +149,7 @@ struct BoardGuideCard: View {
 
             HStack(alignment: .firstTextBaseline) {
 
-                Label("How this board works", systemImage: "sparkles")
+                Label(L10n.t("feedback.guide.title"), systemImage: "sparkles")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.accentColor)
 
@@ -162,20 +162,20 @@ struct BoardGuideCard: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel(Text("Dismiss"))
+                .accessibilityLabel(L10n.t("feedback.guide.dismiss"))
             }
 
             GuideStep(symbol: "magnifyingglass",
-                      text: "Search first - your issue or idea may already be here.")
+                      text: L10n.t("feedback.guide.stepSearch"))
 
             GuideStep(symbol: "hand.thumbsup",
-                      text: "Vote for what matters to you. The most-voted requests get looked at first.")
+                      text: L10n.t("feedback.guide.stepVote"))
 
             GuideStep(symbol: "plus.bubble",
-                      text: "Can't find it? Tap + to report a bug or suggest a feature.")
+                      text: L10n.t("feedback.guide.stepCreate"))
 
             GuideStep(symbol: "bell",
-                      text: "You'll be notified when a request you voted on or posted changes status.")
+                      text: L10n.t("feedback.guide.stepNotify"))
         }
         .padding(.vertical, 4)
     }
@@ -185,15 +185,18 @@ struct BoardGuideCard: View {
 private struct GuideStep: View {
 
     let symbol: String
-    let text: LocalizedStringKey
+    let text: String
 
     var body: some View {
 
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
+        // 图标与文字同用 footnote 字号，间距收紧到 6pt：SF Symbol 字形自带水平内边距，
+        // 叠加定宽 frame 的剩余宽度后，实际视觉空隙会明显大于 HStack 的 spacing 数值。
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
 
             Image(systemName: symbol)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
-                .frame(width: 18)
+                .frame(width: 16, alignment: .leading)
 
             Text(text)
                 .font(.footnote)
@@ -216,7 +219,7 @@ struct IdentityResolvingView: View {
 
             ProgressView()
 
-            Text("Checking your iCloud account…")
+            Text(L10n.t("feedback.notice.resolving"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -238,10 +241,10 @@ struct ReadOnlyNotice: View {
 
             VStack(alignment: .leading, spacing: 2) {
 
-                Text("Read-only")
+                Text(L10n.t("feedback.notice.readOnly"))
                     .font(.subheadline.weight(.semibold))
 
-                Text("Sign in to iCloud in Settings to post, vote or comment.")
+                Text(L10n.t("feedback.notice.readOnlyDetail"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -254,8 +257,8 @@ struct ReadOnlyNotice: View {
 struct FeedbackEmptyState: View {
 
     let symbol: String
-    let title: LocalizedStringKey
-    let message: LocalizedStringKey
+    let title: String
+    let message: String
 
     var body: some View {
 
@@ -300,7 +303,7 @@ struct FeedbackErrorBanner: View {
 
             if let retry {
 
-                Button("Try again", action: retry)
+                Button(L10n.t("feedback.common.tryAgain"), action: retry)
                     .font(.footnote)
             }
         }

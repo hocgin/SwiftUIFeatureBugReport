@@ -93,13 +93,13 @@ public struct FeedbackFormView: View {
 
             Section {
 
-                Picker("Type", selection: $type) {
+                Picker(L10n.t("feedback.form.type"), selection: $type) {
 
-                    Text("Bug").tag(FeedbackType.bug)
-                    Text("Feature").tag(FeedbackType.feature)
+                    Text(FeedbackType.bug.localised).tag(FeedbackType.bug)
+                    Text(FeedbackType.feature.localised).tag(FeedbackType.feature)
                 }
                 .pickerStyle(.segmented)
-                .accessibilityLabel(Text("Feedback type"))
+                .accessibilityLabel(L10n.t("feedback.form.typeAccessibility"))
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
@@ -107,19 +107,19 @@ public struct FeedbackFormView: View {
 
             Section {
 
-                TextField("Title", text: $title)
+                TextField(L10n.t("feedback.common.title"), text: $title)
                     .onChange(of: title) { _, newValue in scheduleSearch(for: newValue) }
 
-            } header: { Text("Title") }
+            } header: { Text(L10n.t("feedback.common.title")) }
 
             if !matches.isEmpty { searchResults }
 
             Section {
 
-                FeedbackTextEditor(placeholder: "What happened, or what would you like to see?",
+                FeedbackTextEditor(placeholder: L10n.t("feedback.form.bodyPlaceholder"),
                                    text: $body_)
 
-            } header: { Text("Details") }
+            } header: { Text(L10n.t("feedback.common.details")) }
 
             if store.configuration.allowImageAttachments {
 
@@ -132,7 +132,7 @@ public struct FeedbackFormView: View {
 
                     MetadataDisclosureView(includeMetadata: $includeMetadata, environment: DeviceInfo.current(), metadata: metadata)
 
-                } label: { Label("What gets included?", systemImage: "info.circle") }
+                } label: { Label(L10n.t("feedback.form.metadataLink"), systemImage: "info.circle") }
             }
 
 #if !os(macOS)
@@ -142,7 +142,7 @@ public struct FeedbackFormView: View {
 
                     HStack {
 
-                        Text("Submit")
+                        Text(L10n.t("feedback.common.submit"))
 
                         if isSubmitting {
 
@@ -162,7 +162,7 @@ public struct FeedbackFormView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("New Feedback")
+        .navigationTitle(L10n.t("feedback.board.newFeedback"))
         .inlineNavigationTitle()
         .toolbar {
 
@@ -171,7 +171,7 @@ public struct FeedbackFormView: View {
                 // 图标按钮，文字仍作为无障碍标签保留
                 Button(role: .cancel, action: { dismiss() }) {
 
-                    Label("Cancel", systemImage: "xmark")
+                    Label(L10n.t("feedback.common.cancel"), systemImage: "xmark")
                         .labelStyle(.iconOnly)
                 }
             }
@@ -188,27 +188,27 @@ public struct FeedbackFormView: View {
                     }
                     else {
 
-                        Label("Submit", systemImage: "paperplane")
+                        Label(L10n.t("feedback.common.submit"), systemImage: "paperplane")
                             .labelStyle(.iconOnly)
                     }
                 }
                 .disabled(!canSubmit)
-                .help("Submit")
+                .help(L10n.t("feedback.common.submit"))
             }
 #endif
         }
         .onDisappear { searchTask?.cancel() }
         .task { await store.start() }
 
-        .alert("Thanks", isPresented: $showSuccess) {
+        .alert(L10n.t("feedback.form.thanks"), isPresented: $showSuccess) {
 
-            Button("OK") { dismiss() }
+            Button(L10n.t("feedback.common.ok")) { dismiss() }
 
-        } message: { Text("Your feedback has been submitted.") }
+        } message: { Text(L10n.t("feedback.form.submittedMessage")) }
 
-        .alert("Voted", isPresented: .constant(votedFromSearch != nil)) {
+        .alert(L10n.t("feedback.form.votedTitle"), isPresented: .constant(votedFromSearch != nil)) {
 
-            Button("OK") {
+            Button(L10n.t("feedback.common.ok")) {
 
                 votedFromSearch = nil
                 dismiss()
@@ -216,7 +216,7 @@ public struct FeedbackFormView: View {
 
         } message: {
 
-            Text("Your vote has been added to \"\(votedFromSearch?.title ?? "")\".")
+            Text(L10n.t("feedback.form.votedMessage \(votedFromSearch?.title ?? "")"))
         }
     }
 
@@ -260,8 +260,8 @@ public struct FeedbackFormView: View {
                 }
             }
 
-        } header: { Text("Already reported?") }
-          footer: { Text("Vote for an existing one instead, or carry on and submit yours.") }
+        } header: { Text(L10n.t("feedback.form.duplicatesHeader")) }
+          footer: { Text(L10n.t("feedback.form.duplicatesFooter")) }
     }
 
     private func scheduleSearch(for text: String) {

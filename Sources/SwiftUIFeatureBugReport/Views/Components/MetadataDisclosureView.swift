@@ -22,19 +22,19 @@ struct MetadataDisclosureView: View {
 
             Section {
 
-                ForEach(environment.disclosureEntries, id: \.label.key) { entry in
+                ForEach(environment.disclosureEntries, id: \.label) { entry in
 
-                    LabeledContent(String(localized: entry.label), value: entry.value)
+                    LabeledContent(entry.label, value: entry.value)
                 }
 
-            } header: { Text("Device information") }
-            footer: { Text("Visible to everyone") }
+            } header: { Text(L10n.t("feedback.metadata.deviceHeader")) }
+            footer: { Text(L10n.t("feedback.metadata.visibleToAll")) }
 
             if metadata.isEmpty {
 
                 Section {
 
-                    Text("This app is not attaching any additional information")
+                    Text(L10n.t("feedback.metadata.noneAdditional"))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -45,10 +45,10 @@ struct MetadataDisclosureView: View {
                 // toggle; it is the minimum needed to triage a report, and matches any public issue tracker.
                 Section {
 
-                    Toggle("Include additional information", isOn: $includeMetadata)
+                    Toggle(L10n.t("feedback.metadata.includeAdditional"), isOn: $includeMetadata)
 
-                } header: { Text("Additional information") }
-                  footer: { Text("Turning this off still sends device information, just not the additional information this app attached") }
+                } header: { Text(L10n.t("feedback.metadata.additionalHeader")) }
+                  footer: { Text(L10n.t("feedback.metadata.additionalFooter")) }
 
                 
                 Section(content: {
@@ -58,11 +58,11 @@ struct MetadataDisclosureView: View {
                         LabeledContent(key, value: metadata[key] ?? "")
                     }
                     
-                }, footer: { Text("Only the developer can see this") })
+                }, footer: { Text(L10n.t("feedback.metadata.onlyDeveloper")) })
                 .opacity(includeMetadata ? 1 : 0.5)
             }
         }
-        .navigationTitle("What gets included")
+        .navigationTitle(L10n.t("feedback.metadata.pageTitle"))
         .inlineNavigationTitle()
     }
 }

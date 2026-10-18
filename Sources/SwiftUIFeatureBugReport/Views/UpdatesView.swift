@@ -52,15 +52,15 @@ public struct UpdatesView: View {
             }
             else if store.activity.isLoading && store.activity.activity.isEmpty {
 
-                Section { ProgressView("Loading…").frame(maxWidth: .infinity) }
+                Section { ProgressView(L10n.t("feedback.common.loading")).frame(maxWidth: .infinity) }
             }
             else if store.activity.activity.isEmpty {
 
                 Section {
 
                     FeedbackEmptyState(symbol: "bell",
-                                       title: "No updates",
-                                       message: "Anything you posted or voted for will show up here when it changes.")
+                                       title: L10n.t("feedback.updates.emptyTitle"),
+                                       message: L10n.t("feedback.updates.emptyMessage"))
                 }
             }
             else {
@@ -92,7 +92,7 @@ public struct UpdatesView: View {
                 }
             }
         }
-        .ownedNavigationTitle("Updates", ownsStack: embedsNavigationStack)
+        .ownedNavigationTitle(L10n.t("feedback.updates.title"), ownsStack: embedsNavigationStack)
         .feedbackRefreshable { await store.activity.feed() }
         .task {
 

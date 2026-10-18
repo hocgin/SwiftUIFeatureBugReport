@@ -38,31 +38,31 @@ public enum FeedbackError: LocalizedError, Sendable {
         switch self {
 
         case .notSignedIn:
-            return String(localized: "Sign in to iCloud to post, vote or comment. You can still read the board.")
+            return L10n.t("feedback.error.notSignedIn")
 
         case .identityUnavailable:
-            return String(localized: "Still checking your iCloud account. Try again in a moment.")
+            return L10n.t("feedback.error.identityUnavailable")
 
         case .metadataTooLarge(let bytes, let limit):
-            return String(localized: "The attached metadata is \(bytes) bytes, over the \(limit) byte limit.")
+            return L10n.t("feedback.error.metadataTooLarge \(bytes) \(limit)")
 
         case .developerRoleNotConfigured:
-            return String(localized: "CloudKit developer role not configured. See README setup step 4.")
+            return L10n.t("feedback.error.developerRole")
 
         case .rateLimited(let retryAfter):
-            return String(localized: "Too many requests. Try again in \(Int(retryAfter.rounded(.up))) seconds.")
+            return L10n.t("feedback.error.rateLimited \(Int(retryAfter.rounded(.up)))")
 
         case .networkUnavailable:
-            return String(localized: "No network connection.")
+            return L10n.t("feedback.error.network")
 
         case .recordMissing:
-            return String(localized: "That item no longer exists.")
+            return L10n.t("feedback.error.recordMissing")
 
         case .schemaNotDeployed:
-            return String(localized: "This app's feedback schema isn't set up in this CloudKit environment. If this is a production build, deploy the schema to Production in the CloudKit Dashboard.")
+            return L10n.t("feedback.error.schemaNotDeployed")
 
         case .imageEncodingFailed:
-            return String(localized: "That image could not be prepared for upload.")
+            return L10n.t("feedback.error.imageEncoding")
 
         case .underlying(let message):
             return message

@@ -37,7 +37,7 @@ struct ImageAttachmentPicker: View {
             if remaining > 0 { picker }
             else {
 
-                Text("Maximum of \(FeedbackRequest.maximumImages) images.")
+                Text(L10n.t("feedback.image.max \(FeedbackRequest.maximumImages)"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -66,10 +66,10 @@ struct ImageAttachmentPicker: View {
                                    label: { Image(systemName: "xmark.circle.fill").symbolRenderingMode(.hierarchical) })
                                 .buttonStyle(.borderless)
                                 .padding(4)
-                                .accessibilityLabel(Text("Remove image \(index + 1)"))
+                                .accessibilityLabel(L10n.t("feedback.image.removeImage \(index + 1)"))
                         }
                         .accessibilityElement(children: .contain)
-                        .accessibilityLabel(Text("Attached image \(index + 1) of \(imageData.count)"))
+                        .accessibilityLabel(L10n.t("feedback.image.attachedImageOf \(index + 1) \(imageData.count)"))
                     }
                 }
             }
@@ -90,7 +90,8 @@ struct ImageAttachmentPicker: View {
                      matching: .images,
                      photoLibrary: .shared()) {
 
-            Label(attached ? "Add another" : "Attach a screenshot", systemImage: "photo.badge.plus")
+            Label(attached ? L10n.t("feedback.image.addAnother") : L10n.t("feedback.image.attach"),
+                  systemImage: "photo.badge.plus")
         }
         .onChange(of: selections) { _, items in
 
@@ -116,7 +117,7 @@ struct ImageAttachmentPicker: View {
         }
         #else
         Button(action: { isImporting = true },
-               label: { Label(hasAttachments ? "Add another" : "Attach a screenshot",
+               label: { Label(hasAttachments ? L10n.t("feedback.image.addAnother") : L10n.t("feedback.image.attach"),
                               systemImage: "photo.badge.plus") })
             .fileImporter(isPresented: $isImporting,
                           allowedContentTypes: [.image],
@@ -172,7 +173,7 @@ struct ImageGallery: View {
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: 220)
                 .clipShape(.rect(cornerRadius: 8))
-                .accessibilityLabel(Text("Image attached to this request"))
+                .accessibilityLabel(L10n.t("feedback.image.attachedRequestImage"))
         }
         else {
 
@@ -189,7 +190,7 @@ struct ImageGallery: View {
                                 .scaledToFit()
                                 .frame(maxHeight: 220)
                                 .clipShape(.rect(cornerRadius: 8))
-                                .accessibilityLabel(Text("Image \(index + 1) of \(urls.count)"))
+                                .accessibilityLabel(L10n.t("feedback.image.imageOf \(index + 1) \(urls.count)"))
                         }
                     }
                 }

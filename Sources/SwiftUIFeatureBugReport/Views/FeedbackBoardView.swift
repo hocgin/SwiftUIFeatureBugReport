@@ -22,14 +22,14 @@ private enum BoardDestination: Hashable, Identifiable {
 
     var id: Self { self }
 
-    var title: LocalizedStringKey {
+    var title: String {
 
         switch self {
 
-        case .roadmap: return "Roadmap"
-        case .updates: return "Updates"
-        case .myData: return "My requests"
-        case .portal: return "Developer portal"
+        case .roadmap: return L10n.t("feedback.roadmap.title")
+        case .updates: return L10n.t("feedback.updates.title")
+        case .myData: return L10n.t("feedback.myData.title")
+        case .portal: return L10n.t("feedback.portal.title")
         }
     }
 }
@@ -115,10 +115,10 @@ public struct FeedbackBoardView: View {
                 HStack(spacing: 8) {
 
                     Button(action: { self.destination = nil },
-                           label: { Label("Back", systemImage: "chevron.backward") })
+                           label: { Label(L10n.t("feedback.board.back"), systemImage: "chevron.backward") })
                         .buttonStyle(.borderless)
                         .labelStyle(.iconOnly)
-                        .help("Back to the board")
+                        .help(L10n.t("feedback.board.backHelp"))
 
                     Text(destination.title)
                         .font(.headline)
@@ -160,8 +160,8 @@ public struct FeedbackBoardView: View {
                     else {
 
                         FeedbackEmptyState(symbol: "sidebar.right",
-                                           title: "Nothing selected",
-                                           message: "Pick a request from the list.")
+                                           title: L10n.t("feedback.common.nothingSelected"),
+                                           message: L10n.t("feedback.common.pickFromList"))
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -203,15 +203,15 @@ public struct FeedbackBoardView: View {
 
             listContent
         }
-        .navigationTitle("Feedback")
+        .navigationTitle(L10n.t("feedback.board.title"))
         .sheet(isPresented: $showingForm) {
 
             FeedbackFormView(store: store, prefill: prefill, initialType: filter == .features ? .feature : .bug)
         }
 #else
         listContent
-            .navigationTitle("Feedback")
-            .searchable(text: $searchText, prompt: Text("Search"))
+            .navigationTitle(L10n.t("feedback.board.title"))
+            .searchable(text: $searchText, prompt: Text(L10n.t("feedback.common.search")))
             .toolbar { toolbarContent }
             .feedbackRefreshable { await store.refresh() }
             .sheet(isPresented: $showingForm) {
@@ -233,7 +233,7 @@ public struct FeedbackBoardView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
 
-                    TextField("Search", text: $searchText)
+                    TextField(L10n.t("feedback.common.search"), text: $searchText)
                         .textFieldStyle(.plain)
                 }
                 .padding(.horizontal, 8)
@@ -247,7 +247,7 @@ public struct FeedbackBoardView: View {
                     Image(systemName: updatesSymbolName)
                         .symbolRenderingMode(.multicolor)
                 }
-                .help("Updates")
+                .help(L10n.t("feedback.updates.title"))
                 .accessibilityLabel(updatesAccessibilityLabel)
 
                 // Stands in for the iOS toolbar's `ToolbarSpacer`. This header is deliberately plain
@@ -260,7 +260,7 @@ public struct FeedbackBoardView: View {
 
                     Image(systemName: "arrow.clockwise")
                 }
-                .help("Refresh")
+                .help(L10n.t("feedback.common.refresh"))
 
                 // Front and centre rather than buried in the menu - it is the developer's most-used
                 // destination on this screen, and it was two clicks and a submenu away.
@@ -270,7 +270,7 @@ public struct FeedbackBoardView: View {
 
                         Image(systemName: "hammer")
                     }
-                    .help("Developer portal")
+                    .help(L10n.t("feedback.portal.title"))
                 }
 
                 Menu {
@@ -286,7 +286,7 @@ public struct FeedbackBoardView: View {
                     Image(systemName: "plus")
                 }
                 .disabled(!store.canWrite)
-                .help("New Feedback")
+                .help(L10n.t("feedback.board.newFeedback"))
             }
             .buttonStyle(.borderless)
             
@@ -318,7 +318,7 @@ public struct FeedbackBoardView: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
-            .accessibilityLabel(Text("Filter by type"))
+            .accessibilityLabel(L10n.t("feedback.board.filterAccessibility"))
             .frame(maxWidth: .infinity, minHeight: 50)
         }
         .listRowInsets(EdgeInsets())
@@ -362,7 +362,7 @@ public struct FeedbackBoardView: View {
         }
         else if store.requests.isLoading && !store.requests.hasLoadedOnce {
 
-            Section { ProgressView("Loading…").frame(maxWidth: .infinity) }
+            Section { ProgressView(L10n.t("feedback.common.loading")).frame(maxWidth: .infinity) }
         }
         else if displayedRequests.isEmpty {
 
@@ -440,20 +440,21 @@ public struct FeedbackBoardView: View {
         let voted = store.votes.hasVoted(on: request.id)
 
         Button(action: { vote(on: request) },
-               label: { Label(voted ? "Withdraw vote" : "Vote",
+               label: { Label(voted ? L10n.t("feedback.common.withdrawVote") : L10n.t("feedback.common.vote"),
                               systemImage: voted ? "arrow.uturn.down.circle" : "arrow.up.circle") })
             .disabled(!store.canWrite)
 
         Button(action: { toggleFollow(request) },
-               label: { Label(store.follows.isFollowing(request.id) ? "Unfollow" : "Follow",
+               label: { Label(store.follows.isFollowing(request.id) ? L10n.t("feedback.common.unfollow") : L10n.t("feedback.common.follow"),
                               systemImage: store.follows.isFollowing(request.id) ? "bell.slash" : "bell") })
             .disabled(!store.canWrite)
 
 #if os(macOS)
         // On iOS this is reachable by opening the request; on the Mac the row menu is the only
-        // pointer-friendly route to it.
+        // pointer-friendly route to it. A distinct key: the action and the Open *status* translate
+        // to different words.
         Button(action: { selection = request.id },
-               label: { Label("Open", systemImage: "arrow.forward") })
+               label: { Label(L10n.t("feedback.common.showDetails"), systemImage: "arrow.forward") })
 #endif
     }
 
@@ -464,7 +465,7 @@ public struct FeedbackBoardView: View {
         ToolbarItem(placement: toolbarTrailingPlacement) {
 
             NavigationLink { UpdatesView(store: store, embedsNavigationStack: false) }
-                label: { Label("Updates", systemImage: updatesSymbolName) }
+                label: { Label(L10n.t("feedback.updates.title"), systemImage: updatesSymbolName) }
                 .symbolRenderingMode(.multicolor)
                 .accessibilityLabel(updatesAccessibilityLabel)
         }
@@ -482,7 +483,7 @@ public struct FeedbackBoardView: View {
             ToolbarItem(placement: toolbarTrailingPlacement) {
 
                 NavigationLink { DeveloperPortalView(store: store, embedsNavigationStack: false) }
-                    label: { Label("Developer portal", systemImage: "hammer") }
+                    label: { Label(L10n.t("feedback.portal.title"), systemImage: "hammer") }
             }
         }
 
@@ -492,13 +493,13 @@ public struct FeedbackBoardView: View {
 
                 moreMenuItems
 
-            } label: { Label("More", systemImage: "ellipsis.circle") }
+            } label: { Label(L10n.t("feedback.common.more"), systemImage: "ellipsis.circle") }
         }
 
         ToolbarItem(placement: toolbarTrailingPlacement) {
 
             Button(action: { showingForm = true },
-                   label: { Label("New Feedback", systemImage: "plus") })
+                   label: { Label(L10n.t("feedback.board.newFeedback"), systemImage: "plus") })
                 .disabled(!store.canWrite)
         }
     }
@@ -507,7 +508,7 @@ public struct FeedbackBoardView: View {
     /// destinations, not two copies that can drift apart.
     @ViewBuilder private var moreMenuItems: some View {
 
-        Picker("Sort", selection: $sort) {
+        Picker(L10n.t("feedback.board.sort"), selection: $sort) {
 
             ForEach(BoardSort.allCases, id: \.self) { Text($0.localised).tag($0) }
         }
@@ -517,17 +518,17 @@ public struct FeedbackBoardView: View {
 #if os(macOS)
         // Buttons, not links - see `BoardDestination` for why nothing here may push.
         Button(action: { destination = .roadmap },
-               label: { Label("Roadmap", systemImage: "map") })
+               label: { Label(L10n.t("feedback.roadmap.title"), systemImage: "map") })
 
         Button(action: { destination = .myData },
-               label: { Label("My requests", systemImage: "person.crop.circle") })
+               label: { Label(L10n.t("feedback.myData.title"), systemImage: "person.crop.circle") })
 
 #else
         NavigationLink { RoadmapView(store: store, embedsNavigationStack: false) }
-            label: { Label("Roadmap", systemImage: "map") }
+            label: { Label(L10n.t("feedback.roadmap.title"), systemImage: "map") }
 
         NavigationLink { MyDataView(store: store, embedsNavigationStack: false) }
-            label: { Label("My requests", systemImage: "person.crop.circle") }
+            label: { Label(L10n.t("feedback.myData.title"), systemImage: "person.crop.circle") }
 
 #endif
     }
@@ -543,7 +544,7 @@ public struct FeedbackBoardView: View {
 
         let unread = store.activity.unreadCount
 
-        return unread > 0 ? Text("Updates, ^[\(unread) new item](inflect: true)") : Text("Updates")
+        return unread > 0 ? Text(L10n.t("feedback.board.updatesAccessibility \(unread)")) : Text(L10n.t("feedback.updates.title"))
     }
 
     @ViewBuilder private var emptyState: some View {
@@ -551,18 +552,18 @@ public struct FeedbackBoardView: View {
         if !searchText.isEmpty {
 
             FeedbackEmptyState(symbol: "magnifyingglass",
-                               title: "No matches",
-                               message: "Nothing on the board matches that.")
+                               title: L10n.t("feedback.board.noMatches"),
+                               message: L10n.t("feedback.board.noMatchesMessage"))
         }
         else {
 
             VStack(spacing: 16) {
 
                 FeedbackEmptyState(symbol: filter == .bugs ? "ladybug.circle" : "lightbulb.circle",
-                                   title: "No open requests",
-                                   message: "Be the first to send some feedback.")
+                                   title: L10n.t("feedback.board.emptyTitle"),
+                                   message: L10n.t("feedback.board.emptyMessage"))
 
-                Button("Send Feedback") { showingForm = true }
+                Button(L10n.t("feedback.board.sendFeedback")) { showingForm = true }
                     .buttonStyle(.borderedProminent)
                     .disabled(!store.canWrite)
             }

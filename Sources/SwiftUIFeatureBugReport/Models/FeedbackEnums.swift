@@ -23,12 +23,12 @@ public enum FeedbackType: String, CaseIterable, Sendable, Hashable {
         }
     }
 
-    public var localised: LocalizedStringKey {
+    public var localised: String {
 
         switch self {
 
-        case .bug: return "Bug"
-        case .feature: return "Feature"
+        case .bug: return L10n.t("feedback.type.bug")
+        case .feature: return L10n.t("feedback.type.feature")
         }
     }
 
@@ -61,14 +61,14 @@ public enum RequestStatus: String, CaseIterable, Sendable, Hashable {
         }
     }
 
-    public var localised: LocalizedStringKey {
+    public var localised: String {
 
         switch self {
 
-        case .open: return "Open"
-        case .inProgress: return "In Progress"
-        case .updatePending: return "Update Pending"
-        case .complete: return "Complete"
+        case .open: return L10n.t("feedback.status.open")
+        case .inProgress: return L10n.t("feedback.status.inProgress")
+        case .updatePending: return L10n.t("feedback.status.updatePending")
+        case .complete: return L10n.t("feedback.status.complete")
         }
     }
 
@@ -180,10 +180,10 @@ public enum ActivityKind: String, CaseIterable, Sendable, Hashable {
 
     /// The `alertLocalizationKey` used by the push subscription for this kind (§8.1).
     ///
-    /// The key **is** the en-GB source string, as it is for every other string in this package (see
-    /// `Package.swift`). Push keys resolve against the **host app's** bundle, not the package's, and a
-    /// key with no entry there is displayed verbatim - which is why the old `ACTIVITY_COMMENT` tokens
-    /// arrived on screen as machine text whenever an integrator had not copied them into a catalogue.
+    /// Deliberately not a `feedback.*` catalogue key: push keys resolve against the **host app's**
+    /// bundle at display time, not this package's, and a key with no entry there is shown verbatim -
+    /// which is why the old `ACTIVITY_COMMENT` tokens arrived on screen as machine text whenever an
+    /// integrator had not copied them into a catalogue. An English sentence is its own fallback.
     ///
     /// Written in English the fallback costs nothing: an app that translates nothing still shows a
     /// readable sentence, and an app that wants these in another language adds the same strings to its
@@ -208,12 +208,12 @@ public enum BoardSort: String, CaseIterable, Sendable, Hashable {
     case votes
     case mostRecent
 
-    public var localised: LocalizedStringKey {
+    public var localised: String {
 
         switch self {
 
-        case .votes: return "Votes"
-        case .mostRecent: return "Most Recent"
+        case .votes: return L10n.t("feedback.common.votes")
+        case .mostRecent: return L10n.t("feedback.sort.mostRecent")
         }
     }
 }
@@ -225,13 +225,13 @@ public enum BoardFilter: String, CaseIterable, Sendable, Hashable {
     case bugs
     case features
 
-    public var localised: LocalizedStringKey {
+    public var localised: String {
 
         switch self {
 
-        case .all: return "All"
-        case .bugs: return "Bugs"
-        case .features: return "Features"
+        case .all: return L10n.t("feedback.filter.all")
+        case .bugs: return L10n.t("feedback.filter.bugs")
+        case .features: return L10n.t("feedback.filter.features")
         }
     }
 
@@ -271,29 +271,29 @@ public enum ReportCategory: String, CaseIterable, Sendable, Hashable {
         }
     }
 
-    public var localised: LocalizedStringKey {
+    public var localised: String {
 
         switch self {
 
-        case .spam: return "Spam"
-        case .abusive: return "Abusive or offensive"
-        case .offTopic: return "Off topic"
-        case .duplicate: return "Duplicate"
-        case .other: return "Something else"
+        case .spam: return L10n.t("feedback.reportCategory.spam")
+        case .abusive: return L10n.t("feedback.reportCategory.abusiveLong")
+        case .offTopic: return L10n.t("feedback.reportCategory.offTopic")
+        case .duplicate: return L10n.t("feedback.reportCategory.duplicate")
+        case .other: return L10n.t("feedback.reportCategory.otherLong")
         }
     }
 
-    /// Plain-`String` form, for places that compose text rather than take a `LocalizedStringKey` -
+    /// Plain-`String` form, for places that compose text rather than take a display string -
     /// the portal's "reported as spam (3), off topic (1)" breakdown.
     public var displayName: String {
 
         switch self {
 
-        case .spam: return String(localized: "Spam")
-        case .abusive: return String(localized: "Abusive")
-        case .offTopic: return String(localized: "Off topic")
-        case .duplicate: return String(localized: "Duplicate")
-        case .other: return String(localized: "Other")
+        case .spam: return L10n.t("feedback.reportCategory.spam")
+        case .abusive: return L10n.t("feedback.reportCategory.abusive")
+        case .offTopic: return L10n.t("feedback.reportCategory.offTopic")
+        case .duplicate: return L10n.t("feedback.reportCategory.duplicate")
+        case .other: return L10n.t("feedback.reportCategory.other")
         }
     }
 

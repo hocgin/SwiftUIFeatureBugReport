@@ -69,11 +69,11 @@ struct HiddenBadge: View {
 
     var body: some View {
 
-        Label("Hidden", systemImage: "eye.slash")
+        Label(L10n.t("feedback.badge.hidden"), systemImage: "eye.slash")
             .labelStyle(CompactBadgeLabelStyle())
             .badgeStyle(background: Color.secondary.opacity(0.15), foreground: .secondary)
-            .accessibilityLabel(Text("Hidden from users"))
-            .help("Hidden from users. You can still see it because you are a developer.")
+            .accessibilityLabel(L10n.t("feedback.badge.hiddenAccessibility"))
+            .help(L10n.t("feedback.badge.hiddenHelp"))
     }
 }
 
@@ -135,21 +135,21 @@ struct VoteButton: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.borderless)
-        .confirmationDialog(hasVoted ? "Withdraw your vote?" : "Vote for this request?",
+        .confirmationDialog(hasVoted ? L10n.t("feedback.badge.withdrawVoteConfirm") : L10n.t("feedback.badge.voteConfirm"),
                             isPresented: $isConfirming,
                             titleVisibility: .visible) {
 
-            if hasVoted { Button("Withdraw vote", role: .destructive, action: action) }
-            else { Button("Vote", action: action) }
+            if hasVoted { Button(L10n.t("feedback.common.withdrawVote"), role: .destructive, action: action) }
+            else { Button(L10n.t("feedback.common.vote"), action: action) }
 
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.t("feedback.common.cancel"), role: .cancel) {}
         }
         // Tappable while voted: the button toggles, so a mis-tap or a change of mind is recoverable.
         .disabled(isBusy || !isEnabled)
         .accessibilityLabel(hasVoted
-                            ? Text("Voted. ^[\(count) vote](inflect: true)")
-                            : Text("Vote. ^[\(count) vote](inflect: true)"))
-        .accessibilityHint(hasVoted ? Text("Withdraws your vote") : Text("Adds your vote"))
+                            ? L10n.t("feedback.common.votedCount \(count)")
+                            : L10n.t("feedback.common.voteActionCount \(count)"))
+        .accessibilityHint(hasVoted ? L10n.t("feedback.badge.withdrawsHint") : L10n.t("feedback.badge.addsVoteHint"))
         .accessibilityAddTraits(hasVoted ? [.isSelected] : [])
     }
 }
@@ -167,8 +167,8 @@ struct ResolvedVersionBadge: View {
 
         Group {
 
-            if version.isEmpty { Label("Fixed", systemImage: "checkmark.circle.fill") }
-            else { Label("Fixed in \(version)", systemImage: "checkmark.circle.fill") }
+            if version.isEmpty { Label(L10n.t("feedback.badge.fixed"), systemImage: "checkmark.circle.fill") }
+            else { Label(L10n.t("feedback.badge.fixedIn \(version)"), systemImage: "checkmark.circle.fill") }
         }
         .labelStyle(CompactBadgeLabelStyle())
         .badgeStyle(background: Color.green.opacity(0.15), foreground: Color.green)
@@ -188,23 +188,23 @@ struct ModerationBanner: View {
     let reportCount: Int
     let threshold: Int
 
-    private var state: (title: LocalizedStringKey, detail: LocalizedStringKey, symbol: String, tint: Color)? {
+    private var state: (title: String, detail: String, symbol: String, tint: Color)? {
 
         switch moderation {
 
         case .hidden:
-            return ("Hidden from everyone",
-                    "No user can see this request. Unhide it from the menu to bring it back.",
+            return (L10n.t("feedback.badge.hiddenFromEveryone"),
+                    L10n.t("feedback.badge.hiddenFromEveryoneDetail"),
                     "eye.slash.fill", .red)
 
         case .visible where reportCount >= threshold:
-            return ("Automatically hidden",
-                    "^[\(reportCount) report](inflect: true) reached the threshold of \(threshold), so users can no longer see this. Clear reports to restore it.",
+            return (L10n.t("feedback.badge.autoHidden"),
+                    L10n.t("feedback.badge.autoHiddenDetail \(reportCount) \(threshold)"),
                     "exclamationmark.triangle.fill", .orange)
 
         case .approved:
-            return ("Reports cleared",
-                    "Visible to everyone. Further reports will not hide it automatically.",
+            return (L10n.t("feedback.badge.reportsCleared"),
+                    L10n.t("feedback.badge.reportsClearedDetail"),
                     "checkmark.shield.fill", .green)
 
         default:

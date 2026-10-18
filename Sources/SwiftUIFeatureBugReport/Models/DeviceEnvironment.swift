@@ -43,15 +43,16 @@ public struct DeviceEnvironment: Sendable, Hashable {
         buildNumber.isEmpty || buildNumber == "Unknown" ? appVersion : "\(appVersion) (\(buildNumber))"
     }
 
-    /// Ordered for display in the metadata disclosure sheet (§9.3).
-    public var disclosureEntries: [(label: LocalizedStringResource, value: String)] {
+    /// Ordered for display in the metadata disclosure sheet (§9.3). Labels arrive already
+    /// localised, resolved from this package's own catalogue.
+    public var disclosureEntries: [(label: String, value: String)] {
 
         [
-            ("Device", deviceModel),
-            ("Operating system", osVersion),
-            ("Platform", platform),
-            ("App version", appVersion),
-            ("Build", buildNumber)
+            (L10n.t("feedback.metadata.device"), deviceModel),
+            (L10n.t("feedback.metadata.os"), osVersion),
+            (L10n.t("feedback.metadata.platform"), platform),
+            (L10n.t("feedback.metadata.appVersion"), appVersion),
+            (L10n.t("feedback.metadata.build"), buildNumber)
         ]
     }
 }

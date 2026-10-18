@@ -51,7 +51,7 @@ struct PortalRequestView: View {
                 Text(request.body)
                     .textSelection(.enabled)
 
-                LabeledContent("Author") {
+                LabeledContent(L10n.t("feedback.common.author")) {
 
                     Text(request.creatorID)
                         .font(.caption.monospaced())
@@ -60,12 +60,12 @@ struct PortalRequestView: View {
                         .truncationMode(.middle)
                 }
 
-                LabeledContent("Votes", value: store.votes.tally(for: request.id).formatted(.number))
-                LabeledContent("Reports", value: store.reports.reportCount(for: request.id).formatted(.number))
+                LabeledContent(L10n.t("feedback.common.votes"), value: store.votes.tally(for: request.id).formatted(.number))
+                LabeledContent(L10n.t("feedback.common.reports"), value: store.reports.reportCount(for: request.id).formatted(.number))
 
                 if let breakdown = reportBreakdown, !breakdown.isEmpty {
 
-                    LabeledContent("Reported as", value: breakdown)
+                    LabeledContent(L10n.t("feedback.portal.request.reportedAs"), value: breakdown)
                 }
             }
 
@@ -78,7 +78,7 @@ struct PortalRequestView: View {
                 Button(action: { showingInfo = true }) {
 
                     // Full width, so the whole row stays the target the pushed link used to be.
-                    Label("Request info", systemImage: "info.circle")
+                    Label(L10n.t("feedback.portal.request.info"), systemImage: "info.circle")
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(.rect)
                 }
@@ -88,7 +88,7 @@ struct PortalRequestView: View {
 
                     RequestInfoView(request: request, metadata: metadata)
 
-                } label: { Label("Request info", systemImage: "info.circle") }
+                } label: { Label(L10n.t("feedback.portal.request.info"), systemImage: "info.circle") }
                 #endif
             }
 
@@ -103,7 +103,7 @@ struct PortalRequestView: View {
             if let error { Section { FeedbackErrorBanner(error: error, retry: nil) } }
         }
         .formStyle(.grouped)
-        .navigationTitle("Request")
+        .navigationTitle(L10n.t("feedback.portal.request.title"))
         .inlineNavigationTitle()
         .toolbar {
 
@@ -114,34 +114,34 @@ struct PortalRequestView: View {
                     Section {
 
                         Button(action: { Task { await store.moderation.approve(request); await reloadDetail() } },
-                               label: { Label("Clear reports", systemImage: "checkmark.shield") })
+                               label: { Label(L10n.t("feedback.common.clearReports"), systemImage: "checkmark.shield") })
                             .disabled(request.moderation == .approved)
 
                         if request.moderation == .hidden {
 
                             Button(action: { Task { await store.moderation.unhide(request); await reloadDetail() } },
-                                   label: { Label("Unhide", systemImage: "eye") })
+                                   label: { Label(L10n.t("feedback.common.unhide"), systemImage: "eye") })
                         }
                         else {
 
                             Button(action: { Task { await store.moderation.hide(request); await reloadDetail() } },
-                                   label: { Label("Hide from everyone", systemImage: "eye.slash") })
+                                   label: { Label(L10n.t("feedback.portal.hideFromEveryone"), systemImage: "eye.slash") })
                         }
                     }
 
-                    Section("Danger zone") {
+                    Section(L10n.t("feedback.portal.dangerZone")) {
 
                         Button(role: .destructive, action: { showingDelete = true },
-                               label: { Label("Delete this request", systemImage: "trash") })
+                               label: { Label(L10n.t("feedback.portal.deleteThisRequest"), systemImage: "trash") })
 
                         Button(role: .destructive, action: { showingBlockAuthor = true },
-                               label: { Label("Hide everything by this author", systemImage: "person.slash") })
+                               label: { Label(L10n.t("feedback.portal.hideEverythingByAuthor"), systemImage: "person.slash") })
 
                         Button(role: .destructive, action: { showingDeleteAuthorData = true },
-                               label: { Label("Delete all of this author's data", systemImage: "person.crop.circle.badge.xmark") })
+                               label: { Label(L10n.t("feedback.portal.deleteAuthorData"), systemImage: "person.crop.circle.badge.xmark") })
                     }
 
-                } label: { Label("Options", systemImage: "ellipsis.circle") }
+                } label: { Label(L10n.t("feedback.common.options"), systemImage: "ellipsis.circle") }
             }
         }
         .modifier(PortalConfirmations(store: store,
@@ -157,12 +157,12 @@ struct PortalRequestView: View {
             NavigationStack {
 
                 RequestInfoView(request: request, metadata: metadata)
-                    .navigationTitle("Request info")
+                    .navigationTitle(L10n.t("feedback.portal.request.info"))
                     .toolbar {
 
                         ToolbarItem(placement: .confirmationAction) {
 
-                            Button("Done") { showingInfo = false }
+                            Button(L10n.t("feedback.common.done")) { showingInfo = false }
                         }
                     }
             }
@@ -177,7 +177,7 @@ struct PortalRequestView: View {
 
         Section {
 
-            Picker("Status", selection: Binding(get: { request.status },
+            Picker(L10n.t("feedback.common.status"), selection: Binding(get: { request.status },
                                                 set: { newStatus in
 
                 request.status = newStatus
@@ -200,19 +200,19 @@ struct PortalRequestView: View {
 
             if request.status == .complete || request.status == .updatePending {
 
-                TextField("Fixed in version", text: $resolvedVersion)
+                TextField(L10n.t("feedback.portal.request.fixedInVersion"), text: $resolvedVersion)
                     .onSubmit { commitVersion() }
 
                 if resolvedVersion != request.resolvedInVersion {
 
-                    Button("Save version") { commitVersion() }
+                    Button(L10n.t("feedback.portal.request.saveVersion")) { commitVersion() }
                 }
             }
 
-        } header: { Text("Status") }
+        } header: { Text(L10n.t("feedback.common.status")) }
           footer: {
 
-            Text("Users searching before they submit see \"Fixed in \(resolvedVersion.isEmpty ? "…" : resolvedVersion)\" on this request. Hold it at Update Pending until the build is actually live.")
+            Text(L10n.t("feedback.portal.request.versionFooter \(resolvedVersion.isEmpty ? "…" : resolvedVersion)"))
           }
     }
 
@@ -233,20 +233,20 @@ struct PortalRequestView: View {
                         Button(role: .destructive, action: { remove(label: label) },
                                label: { Image(systemName: "minus.circle") })
                             .buttonStyle(.borderless)
-                            .accessibilityLabel(Text("Remove label \(label)"))
+                            .accessibilityLabel(L10n.t("feedback.portal.request.removeLabel \(label)"))
                     }
                 }
             }
 
             HStack {
 
-                TextField("Add a label", text: $newLabel)
+                TextField(L10n.t("feedback.portal.request.addLabel"), text: $newLabel)
 
-                Button("Add") { addLabel() }
+                Button(L10n.t("feedback.common.add")) { addLabel() }
                     .disabled(newLabel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
 
-        } header: { Text("Labels") }
+        } header: { Text(L10n.t("feedback.common.labels")) }
     }
 
     @ViewBuilder private var imageSection: some View {
@@ -263,12 +263,12 @@ struct PortalRequestView: View {
 
                     // The record says it has an image but no asset came back. Say so rather than
                     // rendering nothing, which is indistinguishable from a layout bug.
-                    Label(isLoadingDetail ? "Loading image…" : "No image data on this record",
+                    Label(isLoadingDetail ? L10n.t("feedback.portal.request.loadingImage") : L10n.t("feedback.portal.request.noImageData"),
                           systemImage: isLoadingDetail ? "clock" : "exclamationmark.triangle")
                         .foregroundStyle(.secondary)
                 }
 
-                LabeledContent("State", value: request.imageState.rawValue)
+                LabeledContent(L10n.t("feedback.common.state"), value: request.imageState.rawValue)
 
                 if request.imageState == .pending {
 
@@ -277,19 +277,19 @@ struct PortalRequestView: View {
                     HStack(spacing: 10) {
 
                         Button(action: { moderateImage(approve: true) },
-                               label: { Label("Approve", systemImage: "checkmark.circle") })
+                               label: { Label(L10n.t("feedback.portal.request.approve"), systemImage: "checkmark.circle") })
 
                         Button(role: .destructive,
                                action: { moderateImage(approve: false) },
-                               label: { Label("Reject and delete", systemImage: "trash") })
+                               label: { Label(L10n.t("feedback.portal.request.rejectAndDelete"), systemImage: "trash") })
 
                         Spacer(minLength: 0)
                     }
                     .disabled(store.moderation.isWorking)
                 }
 
-            } header: { Text("Image") }
-              footer: { Text("Rejecting deletes the files, not just the flag. Anyone who can query the record can otherwise still fetch them.") }
+            } header: { Text(L10n.t("feedback.common.image")) }
+              footer: { Text(L10n.t("feedback.portal.request.imageFooter")) }
         }
     }
 
@@ -310,26 +310,26 @@ struct PortalRequestView: View {
 
         Section {
 
-            LabeledContent("Moderation", value: request.moderation.rawValue)
+            LabeledContent(L10n.t("feedback.portal.request.moderation"), value: request.moderation.rawValue)
 
             Button(action: { Task { await store.moderation.approve(request); request.moderation = .approved } },
-                   label: { Label("Clear reports", systemImage: "checkmark.shield") })
+                   label: { Label(L10n.t("feedback.common.clearReports"), systemImage: "checkmark.shield") })
                 .disabled(request.moderation == .approved)
 
             if request.moderation == .hidden {
 
                 Button(action: { Task { await store.moderation.unhide(request); request.moderation = .visible } },
-                       label: { Label("Unhide", systemImage: "eye") })
+                       label: { Label(L10n.t("feedback.common.unhide"), systemImage: "eye") })
             }
             else {
 
                 Button(role: .destructive,
                        action: { Task { await store.moderation.hide(request); request.moderation = .hidden } },
-                       label: { Label("Hide from everyone", systemImage: "eye.slash") })
+                       label: { Label(L10n.t("feedback.portal.hideFromEveryone"), systemImage: "eye.slash") })
             }
 
-        } header: { Text("Moderation") }
-          footer: { Text("Clearing moves it to approved, so the existing reports stop counting and it can't silently re-hide itself.") }
+        } header: { Text(L10n.t("feedback.portal.request.moderation")) }
+          footer: { Text(L10n.t("feedback.portal.request.moderationFooter")) }
     }
 
     @ViewBuilder private var commentSection: some View {
@@ -338,7 +338,7 @@ struct PortalRequestView: View {
 
             if store.comments.comments.isEmpty {
 
-                Text("No replies")
+                Text(L10n.t("feedback.portal.request.noReplies"))
                     .foregroundStyle(.secondary)
             }
             else {
@@ -349,7 +349,7 @@ struct PortalRequestView: View {
 
                         HStack {
 
-                            Text(comment.isDeveloper ? "Developer" : "User")
+                            Text(comment.isDeveloper ? L10n.t("feedback.common.developer") : L10n.t("feedback.common.user"))
                                 .font(.caption.weight(.semibold))
 
                             // A user comment whose author is neither the request's creator nor a
@@ -357,7 +357,7 @@ struct PortalRequestView: View {
                             // portal shows it rather than pretending it cannot happen.
                             if !comment.isDeveloper && comment.creatorID != request.creatorID {
 
-                                Label("Not the author", systemImage: "exclamationmark.triangle.fill")
+                                Label(L10n.t("feedback.portal.request.notAuthor"), systemImage: "exclamationmark.triangle.fill")
                                     .font(.caption2)
                                     .foregroundStyle(.orange)
                             }
@@ -381,34 +381,34 @@ struct PortalRequestView: View {
                 }
             }
 
-        } header: { Text("Replies") }
+        } header: { Text(L10n.t("feedback.common.replies")) }
     }
 
     @ViewBuilder private var replySection: some View {
 
         Section {
 
-            FeedbackTextEditor(placeholder: "Reply as the developer", text: $reply, minHeight: 70)
+            FeedbackTextEditor(placeholder: L10n.t("feedback.portal.request.replyPlaceholder"), text: $reply, minHeight: 70)
 
-            Button("Post reply") { postReply() }
+            Button(L10n.t("feedback.portal.request.postReply")) { postReply() }
                 .disabled(reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-        } header: { Text("Reply") }
+        } header: { Text(L10n.t("feedback.portal.request.replyHeader")) }
     }
 
     @ViewBuilder private var notifySection: some View {
 
         Section {
 
-            TextField("Shipped in 2.1", text: $shippedMessage)
+            TextField(L10n.t("feedback.portal.request.announcePlaceholder"), text: $shippedMessage)
 
             Button(action: { notifyFollowers() },
-                   label: { Label("Notify everyone following", systemImage: "bell.badge") })
+                   label: { Label(L10n.t("feedback.portal.request.notifyFollowers"), systemImage: "bell.badge") })
                 .disabled(shippedMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                           || store.moderation.isWorking)
 
-        } header: { Text("Announce") }
-          footer: { Text("Writes one update per follower. Everyone who voted is included.") }
+        } header: { Text(L10n.t("feedback.portal.request.announceHeader")) }
+          footer: { Text(L10n.t("feedback.portal.request.announceFooter")) }
     }
 
     /// Report categories for this request, most common first, so the queue can be read at a glance.
@@ -510,27 +510,27 @@ private struct PortalConfirmations: ViewModifier {
 
         content
 
-            .confirmationDialog("Delete this request?", isPresented: $showingDelete, titleVisibility: .visible) {
+            .confirmationDialog(L10n.t("feedback.portal.deleteRequestConfirm"), isPresented: $showingDelete, titleVisibility: .visible) {
 
-                Button("Delete", role: .destructive) { Task { await store.moderation.delete(request) } }
-                Button("Cancel", role: .cancel) { }
+                Button(L10n.t("feedback.common.delete"), role: .destructive) { Task { await store.moderation.delete(request) } }
+                Button(L10n.t("feedback.common.cancel"), role: .cancel) { }
 
-            } message: { Text("Its votes, replies, reports and metadata go with it. This can't be undone.") }
+            } message: { Text(L10n.t("feedback.portal.deleteRequestMessage")) }
 
-            .confirmationDialog("Hide everything by this author?",
+            .confirmationDialog(L10n.t("feedback.portal.hideEverythingConfirm"),
                                 isPresented: $showingBlockAuthor,
                                 titleVisibility: .visible) {
 
-                Button("Hide all", role: .destructive) { Task { await store.moderation.hideAll(by: request.creatorID) } }
-                Button("Cancel", role: .cancel) { }
+                Button(L10n.t("feedback.portal.hideAll"), role: .destructive) { Task { await store.moderation.hideAll(by: request.creatorID) } }
+                Button(L10n.t("feedback.common.cancel"), role: .cancel) { }
 
-            } message: { Text("Every request from this author is hidden from everyone. Nothing is deleted.") }
+            } message: { Text(L10n.t("feedback.portal.hideEverythingMessage")) }
 
-            .confirmationDialog("Delete all of this author's data?",
+            .confirmationDialog(L10n.t("feedback.portal.deleteAuthorDataConfirm"),
                                 isPresented: $showingDeleteAuthorData,
                                 titleVisibility: .visible) {
 
-                Button("Delete everything", role: .destructive) {
+                Button(L10n.t("feedback.myData.deleteConfirmAction"), role: .destructive) {
 
                     Task {
 
@@ -539,9 +539,9 @@ private struct PortalConfirmations: ViewModifier {
                     }
                 }
 
-                Button("Cancel", role: .cancel) { }
+                Button(L10n.t("feedback.common.cancel"), role: .cancel) { }
 
-            } message: { Text("Use this to honour a deletion request. Their requests are removed along with the votes and replies other people left on them. This can't be undone.") }
+            } message: { Text(L10n.t("feedback.portal.deleteAuthorDataMessage")) }
     }
 }
 
@@ -559,7 +559,7 @@ struct RequestInfoView: View {
 
             Section {
 
-                LabeledContent("Author") {
+                LabeledContent(L10n.t("feedback.common.author")) {
 
                     Text(request.creatorID)
                         .font(.caption.monospaced())
@@ -568,26 +568,26 @@ struct RequestInfoView: View {
                         .truncationMode(.middle)
                 }
 
-                LabeledContent("Submitted", value: request.createdAt.formatted(date: .abbreviated, time: .shortened))
-                LabeledContent("Last activity", value: request.lastActivityAt.formatted(date: .abbreviated, time: .shortened))
+                LabeledContent(L10n.t("feedback.detail.submitted"), value: request.createdAt.formatted(date: .abbreviated, time: .shortened))
+                LabeledContent(L10n.t("feedback.portal.request.lastActivity"), value: request.lastActivityAt.formatted(date: .abbreviated, time: .shortened))
 
-            } header: { Text("Origin") }
+            } header: { Text(L10n.t("feedback.portal.request.origin")) }
 
             Section {
 
-                ForEach(request.environment.disclosureEntries, id: \.label.key) { entry in
+                ForEach(request.environment.disclosureEntries, id: \.label) { entry in
 
-                    LabeledContent(String(localized: entry.label), value: entry.value)
+                    LabeledContent(entry.label, value: entry.value)
                 }
 
-            } header: { Text("Environment") }
-              footer: { Text("The version this was reported from, which is not the version it gets fixed in.") }
+            } header: { Text(L10n.t("feedback.portal.request.environmentHeader")) }
+              footer: { Text(L10n.t("feedback.portal.request.environmentFooter")) }
 
             Section {
 
                 if metadata.isEmpty {
 
-                    Text("None attached")
+                    Text(L10n.t("feedback.portal.request.noneAttached"))
                         .foregroundStyle(.secondary)
                 }
                 else {
@@ -598,11 +598,11 @@ struct RequestInfoView: View {
                     }
                 }
 
-            } header: { Text("Private metadata") }
-              footer: { Text("Readable only by you and the person who submitted it.") }
+            } header: { Text(L10n.t("feedback.portal.request.privateMetadata")) }
+              footer: { Text(L10n.t("feedback.portal.request.privateMetadataFooter")) }
         }
         .formStyle(.grouped)
-        .navigationTitle("Request info")
+        .navigationTitle(L10n.t("feedback.portal.request.info"))
         .inlineNavigationTitle()
     }
 }

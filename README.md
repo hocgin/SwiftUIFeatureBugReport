@@ -222,6 +222,29 @@ a `NavigationSplitView`.
 Other public views accept `embedsNavigationStack: Bool = true`. Set it to `false` when placing the
 view inside a navigation stack your app already owns.
 
+## Localisation
+
+The board is localised with key-based lookups against **this package's own bundle**, so it ships
+translated with no host-app setup: every user-facing string goes through the internal `L10n`
+helper, which resolves a semantic `feedback.<area>.<name>` key (for example
+`feedback.board.sendFeedback`) from `Sources/SwiftUIFeatureBugReport/Resources/`:
+
+- `en.lproj/Localizable.strings` — the source language, key → English.
+- `en.lproj/Localizable.stringsdict` — plural variants (vote counts, queue counts).
+- `zh-Hans.lproj/Localizable.strings` — 简体中文.
+
+Interpolated calls carry their arguments in the key, so `"feedback.badge.fixedIn \(version)"`
+looks up `feedback.badge.fixedIn %@`; integer arguments pick up plural rules from the
+`.stringsdict` (`1 vote` / `2 votes`, 「%lld 票」). `LocalizationKeysTests` keeps code and catalogue
+honest in both directions: a renamed or orphaned key fails the test suite.
+
+To add a language, copy the `zh-Hans.lproj` folder, translate the values, and rename the folder to
+the new locale — SwiftPM picks the folder up automatically.
+
+Push notification keys are the one exception: they are resolved by the *host app* at notification
+display time (see [step 4](#4-notification-strings--nothing-to-do)), so they remain English
+sentences that the integrator can translate in the app's own catalogue.
+
 ## Testing
 
 ```sh

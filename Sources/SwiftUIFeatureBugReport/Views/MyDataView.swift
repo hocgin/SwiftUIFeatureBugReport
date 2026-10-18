@@ -51,34 +51,34 @@ public struct MyDataView: View {
 
                     if store.accountData.isLoading {
 
-                        HStack { ProgressView().controlSize(.small); Text("Counting…") }
+                        HStack { ProgressView().controlSize(.small); Text(L10n.t("feedback.myData.counting")) }
                     }
                     else {
 
-                        LabeledContent("Requests", value: store.accountData.counts.requests.formatted(.number))
-                        LabeledContent("Votes", value: store.accountData.counts.votes.formatted(.number))
+                        LabeledContent(L10n.t("feedback.myData.requests"), value: store.accountData.counts.requests.formatted(.number))
+                        LabeledContent(L10n.t("feedback.common.votes"), value: store.accountData.counts.votes.formatted(.number))
                             .foregroundStyle(.secondary)
-                        LabeledContent("Replies", value: store.accountData.counts.comments.formatted(.number))
-                        LabeledContent("Reports", value: store.accountData.counts.reports.formatted(.number))
+                        LabeledContent(L10n.t("feedback.common.replies"), value: store.accountData.counts.comments.formatted(.number))
+                        LabeledContent(L10n.t("feedback.common.reports"), value: store.accountData.counts.reports.formatted(.number))
                     }
 
-                } header: { Text("Your activity") }
-                  footer: { Text("Tied to your iCloud account. No email address, no sign-up, no account was created for you.") }
+                } header: { Text(L10n.t("feedback.myData.activityHeader")) }
+                  footer: { Text(L10n.t("feedback.myData.activityFooter")) }
 
                 Section {
 
                     Button(role: .destructive, action: { showingDeleteConfirmation = true },
-                           label: { Label("Delete my requests, replies and reports", systemImage: "trash") })
+                           label: { Label(L10n.t("feedback.myData.deleteMine"), systemImage: "trash") })
                         .disabled(store.accountData.isDeleting || store.accountData.counts.isEmpty)
 
                     if store.accountData.isDeleting {
 
-                        HStack { ProgressView().controlSize(.small); Text("Deleting…") }
+                        HStack { ProgressView().controlSize(.small); Text(L10n.t("feedback.myData.deleting")) }
                     }
 
                 } footer: {
 
-                    Text("Votes you cast on other people's requests aren't included. A vote carries no text, and removing them would quietly change someone else's total. Withdraw a vote from the request itself.")
+                    Text(L10n.t("feedback.myData.deleteVotesFooter"))
                 }
 
                 if !store.reports.blockedAuthors.isEmpty { blockedSection }
@@ -90,7 +90,7 @@ public struct MyDataView: View {
             }
         }
         .formStyle(.grouped)
-        .ownedNavigationTitle("My requests", ownsStack: embedsNavigationStack)
+        .ownedNavigationTitle(L10n.t("feedback.myData.title"), ownsStack: embedsNavigationStack)
         .inlineNavigationTitle()
         .task {
 
@@ -98,23 +98,23 @@ public struct MyDataView: View {
             await store.accountData.loadCounts()
         }
 
-        .confirmationDialog("Delete everything you've posted?",
+        .confirmationDialog(L10n.t("feedback.myData.deleteConfirmTitle"),
                             isPresented: $showingDeleteConfirmation,
                             titleVisibility: .visible) {
 
-            Button("Delete everything", role: .destructive) {
+            Button(L10n.t("feedback.myData.deleteConfirmAction"), role: .destructive) {
 
                 Task { await store.deleteMyData() }
             }
 
-            Button("Cancel", role: .cancel) { }
+            Button(L10n.t("feedback.common.cancel"), role: .cancel) { }
 
         } message: {
 
             // Stated plainly rather than buried, in both directions: what goes, and what stays.
             // Deleting a request really does take other people's votes and replies on it with it, and
             // someone about to do that deserves to know before rather than after.
-            Text("This permanently deletes your requests, replies and reports. Any votes and replies other people left on your requests go with them. Votes you cast on other people's requests stay, so their totals aren't changed. Withdraw those individually if you want them gone. This can't be undone.")
+            Text(L10n.t("feedback.myData.deleteConfirmMessage"))
         }
     }
 
@@ -133,12 +133,12 @@ public struct MyDataView: View {
 
                     Spacer()
 
-                    Button("Unblock") { store.reports.unblock(author: author) }
+                    Button(L10n.t("feedback.myData.unblock")) { store.reports.unblock(author: author) }
                         .font(.caption)
                 }
             }
 
-        } header: { Text("Blocked authors") }
-          footer: { Text("Kept on this device only.") }
+        } header: { Text(L10n.t("feedback.myData.blockedHeader")) }
+          footer: { Text(L10n.t("feedback.myData.blockedFooter")) }
     }
 }

@@ -53,8 +53,8 @@ public struct RoadmapView: View {
                 Section {
 
                     FeedbackEmptyState(symbol: "map",
-                                       title: "Nothing planned yet",
-                                       message: "Requests appear here once they're picked up.")
+                                       title: L10n.t("feedback.roadmap.emptyTitle"),
+                                       message: L10n.t("feedback.roadmap.emptyMessage"))
                 }
             }
             else {
@@ -83,13 +83,13 @@ public struct RoadmapView: View {
 
                     } header: {
 
-                        if group.version.isEmpty { Label("Completed", systemImage: "checkmark.circle.fill") }
-                        else { Label("Fixed in \(group.version)", systemImage: "checkmark.circle.fill") }
+                        if group.version.isEmpty { Label(L10n.t("feedback.roadmap.completedGroup"), systemImage: "checkmark.circle.fill") }
+                        else { Label(L10n.t("feedback.badge.fixedIn \(group.version)"), systemImage: "checkmark.circle.fill") }
                     }
                 }
             }
         }
-        .ownedNavigationTitle("Roadmap", ownsStack: embedsNavigationStack)
+        .ownedNavigationTitle(L10n.t("feedback.roadmap.title"), ownsStack: embedsNavigationStack)
         .feedbackRefreshable { await store.load() }
         .task {
 
@@ -108,7 +108,7 @@ public struct RoadmapView: View {
 
                         ToolbarItem(placement: .confirmationAction) {
 
-                            Button("Done") { opened = nil }
+                            Button(L10n.t("feedback.common.done")) { opened = nil }
                         }
                     }
             }
@@ -125,7 +125,7 @@ public struct RoadmapView: View {
                 .font(.subheadline)
                 .lineLimit(2)
 
-            Text("^[\(store.votes.tally(for: request.id)) vote](inflect: true)")
+            Text(L10n.t("feedback.common.voteCount \(store.votes.tally(for: request.id))"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

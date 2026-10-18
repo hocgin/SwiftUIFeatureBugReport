@@ -212,7 +212,7 @@ import Observation
         record[FieldKey.recipientID] = request.creatorID
         record[FieldKey.kind] = ActivityKind.comment.rawValue
         record[FieldKey.requestTitle] = request.title
-        record[FieldKey.message] = String(localized: "The developer replied to your request")
+        record[FieldKey.message] = L10n.t("feedback.activity.developerReplied")
 
         do {
 

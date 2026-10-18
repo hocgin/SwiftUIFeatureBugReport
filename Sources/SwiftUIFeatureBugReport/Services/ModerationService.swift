@@ -50,7 +50,7 @@ import Observation
             record[FieldKey.resolvedInVersion] = version
         }
 
-        let message = String(localized: "Status changed to \(String(localized: statusName(status)))")
+        let message = L10n.t("feedback.activity.statusChanged \(status.localised)")
 
         await writeActivity(kind: status == .complete ? .complete : .status,
                             request: request,
@@ -124,7 +124,7 @@ import Observation
         await writeActivity(kind: .imageApproved,
                             request: request,
                             recipientID: request.creatorID,
-                            message: String(localized: "Your attached image was approved"))
+                            message: L10n.t("feedback.activity.imageApproved"))
     }
 
     /// Rejecting **clears every asset**, not just the flag.
@@ -143,7 +143,7 @@ import Observation
         await writeActivity(kind: .imageRejected,
                             request: request,
                             recipientID: request.creatorID,
-                            message: String(localized: "Your attached image was removed"))
+                            message: L10n.t("feedback.activity.imageRemoved"))
     }
 
     public func delete(_ request: FeedbackRequest) async {
@@ -329,17 +329,6 @@ import Observation
         record[FieldKey.message] = message
 
         return record
-    }
-
-    private func statusName(_ status: RequestStatus) -> String.LocalizationValue {
-
-        switch status {
-
-        case .open: return "Open"
-        case .inProgress: return "In Progress"
-        case .updatePending: return "Update Pending"
-        case .complete: return "Complete"
-        }
     }
 
     // MARK: - Metadata and comment inspection

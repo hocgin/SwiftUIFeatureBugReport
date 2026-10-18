@@ -5,10 +5,10 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftUIFeatureBugReport",
-    // The source language of every string in this package. Note that it does not change where they
-    // resolve from: `Text` and `String(localized:)` both look in `Bundle.main`, so the keys land in
-    // the *host app's* catalogue and are translated there. See README > Localisation.
-    defaultLocalization: "en-GB",
+    // The source language of the key-based catalogue under Resources/. Every user-facing string is
+    // looked up in this package's own bundle (`Bundle.module`, via the `L10n` helper), so the board
+    // ships translated without any host-app setup. See README > Localisation.
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)
@@ -23,6 +23,8 @@ let package = Package(
         .target(
             name: "SwiftUIFeatureBugReport",
             resources: [
+                // Localizable.strings (+ .stringsdict for plurals) per language. See README > Localisation.
+                .process("Resources"),
                 // Folded into the host app's privacy report by Xcode. See README > Privacy.
                 .copy("PrivacyInfo.xcprivacy")
             ]

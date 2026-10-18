@@ -13,14 +13,14 @@ enum PortalQueue: String, CaseIterable, Hashable {
     case images
     case all
 
-    var localised: LocalizedStringKey {
+    var localised: String {
 
         switch self {
 
-        case .open: return "Open"
-        case .reported: return "Reported"
-        case .images: return "Images"
-        case .all: return "All"
+        case .open: return L10n.t("feedback.portal.queue.open")
+        case .reported: return L10n.t("feedback.portal.queue.reported")
+        case .images: return L10n.t("feedback.portal.queue.images")
+        case .all: return L10n.t("feedback.portal.queue.all")
         }
     }
 
@@ -82,13 +82,13 @@ public struct DeveloperPortalView: View {
                 // and `isDeveloper` is answerable.
                 await store.askForDeveloperNotificationsIfNeeded()
             }
-            .confirmationDialog("Delete request?",
+            .confirmationDialog(L10n.t("feedback.portal.deleteConfirmTitle"),
                                 isPresented: Binding(get: { pendingDeletion != nil },
                                                      set: { if !$0 { pendingDeletion = nil } }),
                                 titleVisibility: .visible,
                                 presenting: pendingDeletion) { request in
 
-                Button("Delete", role: .destructive) {
+                Button(L10n.t("feedback.common.delete"), role: .destructive) {
 
                     Task {
 
@@ -100,11 +100,11 @@ public struct DeveloperPortalView: View {
                     }
                 }
 
-                Button("Cancel", role: .cancel) { pendingDeletion = nil }
+                Button(L10n.t("feedback.common.cancel"), role: .cancel) { pendingDeletion = nil }
 
             } message: { request in
 
-                Text("\"\(request.title)\" and its votes, replies, reports and metadata are removed. This can't be undone.")
+                Text(L10n.t("feedback.portal.deleteConfirmMessage \(request.title)"))
             }
     }
 
@@ -135,8 +135,8 @@ public struct DeveloperPortalView: View {
                 else {
 
                     FeedbackEmptyState(symbol: "hammer",
-                                       title: "Nothing selected",
-                                       message: "Pick a request from the list.")
+                                       title: L10n.t("feedback.common.nothingSelected"),
+                                       message: L10n.t("feedback.common.pickFromList"))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -172,7 +172,7 @@ public struct DeveloperPortalView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(.secondary)
 
-                        TextField("Search", text: $searchText)
+                        TextField(L10n.t("feedback.common.search"), text: $searchText)
                             .textFieldStyle(.plain)
                     }
                     .padding(.horizontal, 8)
@@ -188,7 +188,7 @@ public struct DeveloperPortalView: View {
                         Image(systemName: "arrow.clockwise")
                     }
                     .buttonStyle(.borderless)
-                    .help("Refresh")
+                    .help(L10n.t("feedback.common.refresh"))
                 }
                 
                 listFilter
@@ -197,11 +197,11 @@ public struct DeveloperPortalView: View {
 
             portalList
         }
-        .ownedNavigationTitle("Dev Portal", ownsStack: embedsNavigationStack)
+        .ownedNavigationTitle(L10n.t("feedback.portal.shortTitle"), ownsStack: embedsNavigationStack)
 #else
         portalList
-            .navigationTitle("Dev Portal")
-            .searchable(text: $searchText, prompt: Text("Search"))
+            .navigationTitle(L10n.t("feedback.portal.shortTitle"))
+            .searchable(text: $searchText, prompt: Text(L10n.t("feedback.common.search")))
             .feedbackRefreshable { await store.load() }
             .toolbar {
 
@@ -237,7 +237,7 @@ public struct DeveloperPortalView: View {
         }
         .labelsHidden()
         .pickerStyle(.segmented)
-        .accessibilityLabel(Text("Triage queue"))
+        .accessibilityLabel(L10n.t("feedback.portal.queueAccessibility"))
         .frame(maxWidth: .infinity, minHeight: 50)
     }
 
@@ -263,8 +263,8 @@ public struct DeveloperPortalView: View {
             Section {
 
                 FeedbackEmptyState(symbol: queue.symbolName,
-                                   title: "Nothing here",
-                                   message: "This queue is empty.")
+                                   title: L10n.t("feedback.portal.emptyTitle"),
+                                   message: L10n.t("feedback.portal.emptyMessage"))
             }
         }
         else {
@@ -273,7 +273,7 @@ public struct DeveloperPortalView: View {
 
                 ForEach(queued) { request in row(for: request) }
 
-            } header: { Text("^[\(queued.count) request](inflect: true)") }
+            } header: { Text(L10n.t("feedback.portal.requestCount \(queued.count)")) }
         }
     }
 
@@ -283,15 +283,15 @@ public struct DeveloperPortalView: View {
 
         if !availableVersions.isEmpty {
 
-            Picker("App version", selection: $versionFilter) {
+            Picker(L10n.t("feedback.metadata.appVersion"), selection: $versionFilter) {
 
-                Text("All versions").tag(String?.none)
+                Text(L10n.t("feedback.portal.allVersions")).tag(String?.none)
 
                 ForEach(availableVersions, id: \.self) { Text($0).tag(String?.some($0)) }
             }
             .labelsHidden()
-            .accessibilityLabel(Text("Filter by app version"))
-            .help("Filter by app version")
+            .accessibilityLabel(L10n.t("feedback.portal.versionFilterAccessibility"))
+            .help(L10n.t("feedback.portal.versionFilterAccessibility"))
 #if os(macOS)
             .fixedSize()
 #endif
@@ -320,28 +320,28 @@ public struct DeveloperPortalView: View {
 
                 if store.reports.reportCount(for: request.id) > 0 {
 
-                    Label("\(store.reports.reportCount(for: request.id))", systemImage: "flag.fill")
+                    Label(store.reports.reportCount(for: request.id).formatted(.number), systemImage: "flag.fill")
                         .font(.caption2)
                         .foregroundStyle(.red)
                 }
 
                 if request.imageState == .pending {
 
-                    Label("Image", systemImage: "photo")
+                    Label(L10n.t("feedback.common.image"), systemImage: "photo")
                         .font(.caption2)
                         .foregroundStyle(.orange)
                 }
 
                 if request.moderation == .hidden {
 
-                    Label("Hidden", systemImage: "eye.slash")
+                    Label(L10n.t("feedback.badge.hidden"), systemImage: "eye.slash")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                Text("^[\(store.votes.tally(for: request.id)) vote](inflect: true) · \(request.environment.versionLabel)")
+                Text(L10n.t("feedback.portal.voteCountVersion \(store.votes.tally(for: request.id)) \(request.environment.versionLabel)"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -386,23 +386,23 @@ public struct DeveloperPortalView: View {
         if request.moderation == .hidden {
 
             Button(action: { Task { await store.moderation.unhide(request) } },
-                   label: { Label("Unhide", systemImage: "eye") })
+                   label: { Label(L10n.t("feedback.common.unhide"), systemImage: "eye") })
         }
         else {
 
             Button(role: .destructive, action: { Task { await store.moderation.hide(request) } },
-                   label: { Label("Hide", systemImage: "eye.slash") })
+                   label: { Label(L10n.t("feedback.common.hide"), systemImage: "eye.slash") })
         }
 
         Button(action: { Task { await store.moderation.approve(request) } },
-               label: { Label("Clear reports", systemImage: "checkmark.shield") })
+               label: { Label(L10n.t("feedback.common.clearReports"), systemImage: "checkmark.shield") })
 
         Divider()
 
         // Confirmed rather than immediate: this cascades, and there is no undo. Hiding is the
         // reversible option and sits above it for that reason.
         Button(role: .destructive, action: { pendingDeletion = request },
-               label: { Label("Delete", systemImage: "trash") })
+               label: { Label(L10n.t("feedback.common.delete"), systemImage: "trash") })
     }
 
     private var selectedRequest: FeedbackRequest? {
