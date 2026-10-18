@@ -168,7 +168,12 @@ public struct FeedbackFormView: View {
 
             ToolbarItem(placement: toolbarLeadingPlacement) {
 
-                Button("Cancel", role: .cancel) { dismiss() }
+                // 图标按钮，文字仍作为无障碍标签保留
+                Button(role: .cancel, action: { dismiss() }) {
+
+                    Label("Cancel", systemImage: "xmark")
+                        .labelStyle(.iconOnly)
+                }
             }
 
 #if os(macOS)
@@ -183,10 +188,12 @@ public struct FeedbackFormView: View {
                     }
                     else {
 
-                        Text("Submit")
+                        Label("Submit", systemImage: "paperplane")
+                            .labelStyle(.iconOnly)
                     }
                 }
                 .disabled(!canSubmit)
+                .help("Submit")
             }
 #endif
         }

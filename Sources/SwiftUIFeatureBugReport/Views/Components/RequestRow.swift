@@ -138,6 +138,72 @@ private struct ChipFlowLayout: Layout {
 }
 
 
+/// 看板顶部的引导说明：告诉第一次来的人这里能做什么，可关闭。
+struct BoardGuideCard: View {
+
+    let onDismiss: () -> Void
+
+    var body: some View {
+
+        VStack(alignment: .leading, spacing: 10) {
+
+            HStack(alignment: .firstTextBaseline) {
+
+                Label("How this board works", systemImage: "sparkles")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.accentColor)
+
+                Spacer(minLength: 8)
+
+                Button(action: onDismiss) {
+
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(Text("Dismiss"))
+            }
+
+            GuideStep(symbol: "magnifyingglass",
+                      text: "Search first - your issue or idea may already be here.")
+
+            GuideStep(symbol: "hand.thumbsup",
+                      text: "Vote for what matters to you. The most-voted requests get looked at first.")
+
+            GuideStep(symbol: "plus.bubble",
+                      text: "Can't find it? Tap + to report a bug or suggest a feature.")
+
+            GuideStep(symbol: "bell",
+                      text: "You'll be notified when a request you voted on or posted changes status.")
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+
+private struct GuideStep: View {
+
+    let symbol: String
+    let text: LocalizedStringKey
+
+    var body: some View {
+
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+
+            Image(systemName: symbol)
+                .foregroundStyle(.secondary)
+                .frame(width: 18)
+
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+
 /// Shown while identity is still resolving.
 ///
 /// Rendering rows before `identityState` is settled means every one of them reads "not mine, not

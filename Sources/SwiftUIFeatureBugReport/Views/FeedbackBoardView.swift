@@ -44,6 +44,8 @@ public struct FeedbackBoardView: View {
 
     @State private var filter: BoardFilter = .all
     @AppStorage("feedbackBoardSort") private var sort: BoardSort = .votes
+    /// 引导说明关闭后不再出现
+    @AppStorage("feedbackBoardGuideDismissed") private var guideDismissed = false
 
     @State private var searchText = ""
     @State private var showingForm = false
@@ -329,6 +331,15 @@ public struct FeedbackBoardView: View {
 #if os(iOS)
         listFilter
 #endif
+
+        if !guideDismissed {
+
+            Section {
+
+                BoardGuideCard { withAnimation { guideDismissed = true } }
+            }
+            .listRowSeparator(.hidden)
+        }
 
         if !store.canWrite && store.container.identityState != .resolving {
 
