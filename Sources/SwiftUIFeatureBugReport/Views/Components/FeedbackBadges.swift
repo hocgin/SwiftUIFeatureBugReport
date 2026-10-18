@@ -5,6 +5,23 @@
 
 import SwiftUI
 
+/// 徽章统一样式：单行、按内容自适应宽度，不被父级压缩或换行。
+private extension View {
+
+    func badgeStyle<S: ShapeStyle>(background: S, foreground: some ShapeStyle) -> some View {
+
+        self
+            .font(.caption2.weight(.medium))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: true)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(background, in: Capsule())
+            .foregroundStyle(foreground)
+    }
+}
+
+
 struct TypeBadge: View {
 
     let type: FeedbackType
@@ -12,11 +29,7 @@ struct TypeBadge: View {
     var body: some View {
 
         Text(type.localised)
-            .font(.caption2)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(type == .feature ? Color.blue : Color.red, in: Capsule())
-            .foregroundStyle(.white)
+            .badgeStyle(background: type == .feature ? Color.blue : Color.red, foreground: .white)
     }
 }
 
@@ -28,12 +41,8 @@ struct StatusBadge: View {
     var body: some View {
 
         Label(status.localised, systemImage: status.symbolName)
-            .font(.caption2)
             .labelStyle(.titleAndIcon)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(status.tint.opacity(0.15), in: Capsule())
-            .foregroundStyle(status.tint)
+            .badgeStyle(background: status.tint.opacity(0.15), foreground: status.tint)
     }
 }
 
@@ -47,12 +56,8 @@ struct HiddenBadge: View {
     var body: some View {
 
         Label("Hidden", systemImage: "eye.slash")
-            .font(.caption2)
             .labelStyle(.titleAndIcon)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(Color.secondary.opacity(0.15), in: Capsule())
-            .foregroundStyle(.secondary)
+            .badgeStyle(background: Color.secondary.opacity(0.15), foreground: .secondary)
             .accessibilityLabel(Text("Hidden from users"))
             .help("Hidden from users. You can still see it because you are a developer.")
     }
@@ -66,11 +71,7 @@ struct LabelChip: View {
     var body: some View {
 
         Text(name)
-            .font(.caption2)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(Color(labelName: name), in: Capsule())
-            .foregroundStyle(.white)
+            .badgeStyle(background: Color(labelName: name), foreground: .white)
     }
 }
 
@@ -104,10 +105,15 @@ struct VoteButton: View {
                 }
 
                 Text(count.formatted(.number))
+                    .monospacedDigit()
             }
-            .font(.caption)
+            .font(.caption.weight(.medium))
             .foregroundStyle(hasVoted ? Color.green : Color.accentColor)
-            .contentShape(.rect)
+            // 胶囊底色，让投票入口在行内更醒目、点击区域更大
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background((hasVoted ? Color.green : Color.accentColor).opacity(0.12), in: Capsule())
+            .contentShape(Capsule())
         }
         .buttonStyle(.borderless)
         // Tappable while voted: the button toggles, so a mis-tap or a change of mind is recoverable.

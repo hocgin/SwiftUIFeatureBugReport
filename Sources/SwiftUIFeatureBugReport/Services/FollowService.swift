@@ -137,18 +137,11 @@ import Observation
         let reference = CKRecord.Reference(recordID: requestID, action: .none)
         let predicate = NSPredicate(format: "%K == %@", FieldKey.request, reference)
 
-        do {
+        // Paged: a popular request has more followers than one batch, and the rest would never be told.
+        let result = await CloudKitPaging.fetchAll(CKQuery(recordType: RecordType.follow, predicate: predicate),
+                                                   desiredKeys: [FieldKey.request],
+                                                   in: database)
 
-            let page = try await database.records(matching: CKQuery(recordType: RecordType.follow, predicate: predicate),
-                                                  desiredKeys: [FieldKey.request])
-
-            return Set(page.matchResults
-                .compactMap { try? $0.1.get() }
-                .compactMap { $0.creatorUserRecordID?.recordName })
-        }
-        catch {
-
-            return []
-        }
+        return Set(result.records.compactMap { $0.creatorUserRecordID?.recordName })
     }
 }

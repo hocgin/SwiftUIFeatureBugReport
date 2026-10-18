@@ -51,23 +51,62 @@ import Observation
         let reference = CKRecord.Reference(recordID: requestID, action: .none)
         let predicate = NSPredicate(format: "%K == %@", FieldKey.request, reference)
 
-        do {
+        let query = CKQuery(recordType: recordType, predicate: predicate)
 
-            let page = try await database.records(matching: CKQuery(recordType: recordType, predicate: predicate))
+        var fetched: [FeedbackComment] = []
+        var cursor: CKQueryOperation.Cursor?
+        var pages = 0
 
-            return page.matchResults
-                .compactMap { try? $0.1.get() }
-                .compactMap { FeedbackComment(record: $0) }
-        }
-        catch {
+        // Paged like `VoteService.loadTallies()`: a single page dropped replies on busy requests.
+        repeat {
 
-            if !CloudKitErrorHandler.isRecordMissing(error) {
+            guard pages < CloudKitErrorHandler.maxQueryPages else {
 
-                self.error = CloudKitErrorHandler.classify(error)
+                self.error = CloudKitErrorHandler.incompleteLoad
+                break
             }
 
-            return []
+            pages += 1
+
+            do {
+
+                let page: (matchResults: [(CKRecord.ID, Result<CKRecord, any Error>)], queryCursor: CKQueryOperation.Cursor?)
+
+                if let cursor {
+
+                    page = try await database.records(continuingMatchFrom: cursor)
+                }
+                else {
+
+                    page = try await database.records(matching: query)
+                }
+
+                // Keep the comments that loaded; surface any that failed for a reason other than deletion.
+                if let failure = CloudKitErrorHandler.firstMatchFailure(in: page.matchResults) {
+
+                    self.error = failure
+                }
+
+                fetched += page.matchResults
+                    .compactMap { try? $0.1.get() }
+                    .compactMap { FeedbackComment(record: $0) }
+
+                cursor = page.queryCursor
+            }
+            catch {
+
+                if !CloudKitErrorHandler.isRecordMissing(error) {
+
+                    self.error = CloudKitErrorHandler.classify(error)
+                }
+
+                // Keep the pages already fetched.
+                break
+            }
         }
+        while cursor != nil
+
+        return fetched
     }
 
     /// Whether this user may comment on `request`.

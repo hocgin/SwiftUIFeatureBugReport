@@ -19,11 +19,12 @@ struct RequestRow: View {
 
         VStack(alignment: .leading, spacing: 8) {
 
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
 
                 Text(request.title)
                     .font(.headline)
                     .lineLimit(2)
+                    .layoutPriority(0)
 
                 Spacer(minLength: 8)
 
@@ -48,10 +49,12 @@ struct RequestRow: View {
                     if request.moderation == .hidden { HiddenBadge() }
 
                     ForEach(request.labels.prefix(2), id: \.self) { LabelChip(name: $0) }
+
+                    Spacer(minLength: 0)
                 }
             }
 
-            HStack {
+            HStack(spacing: 8) {
 
                 VoteButton(count: voteCount,
                            hasVoted: hasVoted,

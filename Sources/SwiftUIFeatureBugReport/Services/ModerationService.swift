@@ -186,9 +186,13 @@ import Observation
             // Only `creatorID` is fetched, so these records are partial. That is safe because
             // `CloudKitBatch` saves with `.changedKeys` - an `.allKeys` policy would null out every
             // field that was not fetched.
-            let page = try await database.records(matching: query, desiredKeys: [FieldKey.creatorID])
+            // Paged: stopping at the first batch would leave a prolific author's other requests visible.
+            let result = await CloudKitPaging.fetchAll(query, desiredKeys: [FieldKey.creatorID], in: database)
 
-            let records = page.matchResults.compactMap { try? $0.1.get() }
+            let records = result.records
+
+            // Hide what was found, but say so if the list was cut short.
+            if let failure = result.failure { self.error = failure }
 
             for record in records { record[FieldKey.moderation] = ModerationState.hidden.rawValue }
 
