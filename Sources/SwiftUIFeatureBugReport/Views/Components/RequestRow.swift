@@ -17,68 +17,122 @@ struct RequestRow: View {
 
     var body: some View {
 
-        VStack(alignment: .leading, spacing: 8) {
+        // 卡片式布局：左侧为「类型 · 时间 / 标题 / 状态与标签」，投票胶囊固定在右上角。
+        HStack(alignment: .top, spacing: 12) {
 
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
+
+                HStack(spacing: 8) {
+
+                    if showsType { TypeBadge(type: request.type) }
+
+                    Text(request.lastActivityAt, format: .relative(presentation: .named))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
 
                 Text(request.title)
-                    .font(.headline)
+                    .font(.title3.weight(.semibold))
                     .lineLimit(2)
-                    .layoutPriority(0)
+                    .multilineTextAlignment(.leading)
 
-                Spacer(minLength: 8)
+                if !request.body.isEmpty {
 
-                if showsType { TypeBadge(type: request.type) }
-            }
-
-            if !request.body.isEmpty {
-
-                Text(request.body)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-
-            if !request.labels.isEmpty || request.status != .open || request.moderation == .hidden {
-
-                HStack(spacing: 6) {
-
-                    if request.status == .complete { ResolvedVersionBadge(version: request.resolvedInVersion) }
-                    else if request.status != .open { StatusBadge(status: request.status) }
-
-                    if request.moderation == .hidden { HiddenBadge() }
-
-                    ForEach(request.labels.prefix(2), id: \.self) { LabelChip(name: $0) }
-
-                    Spacer(minLength: 0)
-                }
-            }
-
-            HStack(spacing: 8) {
-
-                VoteButton(count: voteCount,
-                           hasVoted: hasVoted,
-                           isBusy: isVoting,
-                           isEnabled: canVote,
-                           action: onVote)
-
-                if request.imageState == .pending {
-
-                    Label("Image in review", systemImage: "clock")
-                        .font(.caption2)
+                    Text(request.body)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
 
-                Spacer()
+                if hasChips {
 
-                Text(request.lastActivityAt, format: .relative(presentation: .named))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    // 标签过多时自动换行，而不是被截断
+                    ChipFlowLayout(spacing: 8) {
+
+                        if request.status == .complete { ResolvedVersionBadge(version: request.resolvedInVersion) }
+                        else if request.status != .open { StatusBadge(status: request.status) }
+
+                        if request.moderation == .hidden { HiddenBadge() }
+
+                        ForEach(request.labels.prefix(3), id: \.self) { LabelChip(name: $0) }
+
+                        if request.imageState == .pending {
+
+                            Label("Image in review", systemImage: "clock")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            VoteButton(count: voteCount,
+                       hasVoted: hasVoted,
+                       isBusy: isVoting,
+                       isEnabled: canVote,
+                       action: onVote)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
         // The vote button stays its own element; the rest of the row reads as one label.
         .accessibilityElement(children: .contain)
+    }
+
+    private var hasChips: Bool {
+
+        !request.labels.isEmpty
+            || request.status != .open
+            || request.moderation == .hidden
+            || request.imageState == .pending
+    }
+}
+
+
+/// 按行流式排布子视图，放不下就换行。
+private struct ChipFlowLayout: Layout {
+
+    var spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+
+        arrange(proposal.width ?? .infinity, subviews).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+
+        let result = arrange(bounds.width, subviews)
+
+        for (index, origin) in result.origins.enumerated() {
+
+            subviews[index].place(at: CGPoint(x: bounds.minX + origin.x, y: bounds.minY + origin.y),
+                                  proposal: .unspecified)
+        }
+    }
+
+    private func arrange(_ width: CGFloat, _ subviews: Subviews) -> (size: CGSize, origins: [CGPoint]) {
+
+        var origins: [CGPoint] = []
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0, maxX: CGFloat = 0
+
+        for subview in subviews {
+
+            let size = subview.sizeThatFits(.unspecified)
+
+            if x > 0, x + size.width > width {
+
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+
+            origins.append(CGPoint(x: x, y: y))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+            maxX = max(maxX, x - spacing)
+        }
+
+        return (CGSize(width: maxX, height: y + rowHeight), origins)
     }
 }
 

@@ -11,13 +11,27 @@ private extension View {
     func badgeStyle<S: ShapeStyle>(background: S, foreground: some ShapeStyle) -> some View {
 
         self
-            .font(.caption2.weight(.medium))
+            .font(.footnote.weight(.semibold))
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: true)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
             .background(background, in: Capsule())
             .foregroundStyle(foreground)
+    }
+}
+
+
+/// 徽章内图标与文字紧贴：系统 `Label` 的默认间距在小徽章里显得过大。
+private struct CompactBadgeLabelStyle: LabelStyle {
+
+    func makeBody(configuration: Configuration) -> some View {
+
+        HStack(spacing: 4) {
+
+            configuration.icon
+            configuration.title
+        }
     }
 }
 
@@ -41,7 +55,7 @@ struct StatusBadge: View {
     var body: some View {
 
         Label(status.localised, systemImage: status.symbolName)
-            .labelStyle(.titleAndIcon)
+            .labelStyle(CompactBadgeLabelStyle())
             .badgeStyle(background: status.tint.opacity(0.15), foreground: status.tint)
     }
 }
@@ -56,7 +70,7 @@ struct HiddenBadge: View {
     var body: some View {
 
         Label("Hidden", systemImage: "eye.slash")
-            .labelStyle(.titleAndIcon)
+            .labelStyle(CompactBadgeLabelStyle())
             .badgeStyle(background: Color.secondary.opacity(0.15), foreground: .secondary)
             .accessibilityLabel(Text("Hidden from users"))
             .help("Hidden from users. You can still see it because you are a developer.")
@@ -71,7 +85,8 @@ struct LabelChip: View {
     var body: some View {
 
         Text(name)
-            .badgeStyle(background: Color(labelName: name), foreground: .white)
+            // 淡色底 + 同色文字，与状态徽章保持一致，避免标签比类型更抢眼
+            .badgeStyle(background: Color(labelName: name).opacity(0.15), foreground: Color(labelName: name))
     }
 }
 
@@ -102,16 +117,17 @@ struct VoteButton: View {
                 else {
 
                     Image(systemName: hasVoted ? "hand.thumbsup.fill" : "hand.thumbsup")
+                        .font(.body)
                 }
 
                 Text(count.formatted(.number))
                     .monospacedDigit()
             }
-            .font(.caption.weight(.medium))
+            .font(.body.weight(.medium))
             .foregroundStyle(hasVoted ? Color.green : Color.accentColor)
             // 胶囊底色，让投票入口在行内更醒目、点击区域更大
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
             .background((hasVoted ? Color.green : Color.accentColor).opacity(0.12), in: Capsule())
             .contentShape(Capsule())
         }
@@ -142,8 +158,8 @@ struct ResolvedVersionBadge: View {
             if version.isEmpty { Label("Fixed", systemImage: "checkmark.circle.fill") }
             else { Label("Fixed in \(version)", systemImage: "checkmark.circle.fill") }
         }
-        .font(.caption2)
-        .foregroundStyle(.green)
+        .labelStyle(CompactBadgeLabelStyle())
+        .badgeStyle(background: Color.green.opacity(0.15), foreground: Color.green)
     }
 }
 

@@ -400,6 +400,8 @@ public struct FeedbackBoardView: View {
         .accessibilityAddTraits(isSelected(request) ? [.isSelected] : [])
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
+        // 收紧卡片之间的上下间距
+        .listRowInsets(EdgeInsets(top: 3, leading: 8, bottom: 3, trailing: 8))
         .rowActions { rowMenu(for: request) }
 #else
         NavigationLink { RequestDetailView(store: store, request: request, embedsNavigationStack: false) }
