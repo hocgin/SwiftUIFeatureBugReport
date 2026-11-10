@@ -410,7 +410,7 @@ public struct FeedbackBoardView: View {
         Button(action: { selection = request.id }) {
 
             content
-                .padding(10)
+                .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(isSelected(request) ? AnyShapeStyle(Color.accentColor.opacity(0.18))
                                                 : AnyShapeStyle(.quaternary),
@@ -433,7 +433,7 @@ public struct FeedbackBoardView: View {
         // 卡片样式：整行点按手势负责跳转（行尾不会出现系统箭头）。
         // 投票方块是行内子按钮，手势优先级高于父视图的 onTapGesture，因此点它只会触发投票确认。
         content
-            .padding(.vertical, 12)
+            .padding(.vertical, 9)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .onTapGesture { openedRequestID = request.id }

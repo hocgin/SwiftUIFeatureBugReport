@@ -19,7 +19,7 @@ struct RequestRow: View {
 
         // 卡片式布局：左侧为描边投票方块；右侧一列依次为标题、摘要、徽章行，
         // 徽章与标题左对齐，文字列整体填满方块高度，避免方块下方出现大块留白。
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 10) {
 
             VoteButton(count: voteCount,
                        hasVoted: hasVoted,
@@ -29,28 +29,28 @@ struct RequestRow: View {
                        style: .tile,
                        action: onVote)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
 
                     Text(request.title)
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
                     if !request.body.isEmpty {
 
                         Text(request.body)
-                            .font(.footnote)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                            .lineLimit(1)
                     }
                 }
 
                 if hasChips {
 
                     // 标签过多时自动换行，而不是被截断
-                    ChipFlowLayout(spacing: 6) {
+                    ChipFlowLayout(spacing: 4) {
 
                         if showsType { TypeBadge(type: request.type) }
 
@@ -73,7 +73,7 @@ struct RequestRow: View {
             }
             // 首行标题与方块顶部视觉对齐：抵消字体行高带来的上方留白
             .padding(.top, 1)
-            .frame(maxWidth: .infinity, minHeight: 48, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 40, alignment: .topLeading)
         }
         // 状态、标签变化时徽章平滑过渡
         .animation(.snappy, value: request.status)

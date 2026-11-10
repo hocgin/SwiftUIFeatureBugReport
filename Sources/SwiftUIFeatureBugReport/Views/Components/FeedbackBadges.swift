@@ -12,12 +12,12 @@ private extension View {
     func badgeStyle<S: ShapeStyle>(background: S, foreground: some ShapeStyle) -> some View {
 
         self
-            .font(.caption.weight(.medium))
+            .font(.caption2.weight(.medium))
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: true)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(background, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(background, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
             .foregroundStyle(foreground)
     }
 }
@@ -171,11 +171,11 @@ struct VoteButton: View {
     /// 竖向方块：上箭头 + 紧凑计数（1.2K），描边圆角矩形；已投票时整块填充。
     private var tileLabel: some View {
 
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
 
             // 箭头始终占位，加载指示叠加在上方，避免切换时计数上下跳动
             Image(systemName: "chevron.up")
-                .font(.caption.weight(.bold))
+                .font(.caption2.weight(.bold))
                 .foregroundStyle(hasVoted ? Color.white : tint)
                 .opacity(isBusy ? 0 : 1)
                 .symbolEffect(.bounce.up, value: hasVoted)
@@ -191,21 +191,21 @@ struct VoteButton: View {
 
             Text(count.formatted(.number.notation(.compactName)))
                 .contentTransition(.numericText(value: Double(count)))
-                .font(.footnote.weight(.semibold))
+                .font(.caption.weight(.semibold))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .foregroundStyle(hasVoted ? Color.white : Color.primary)
         }
-        .frame(width: 44, height: 48)
+        .frame(width: 38, height: 40)
         .background(hasVoted ? AnyShapeStyle(tint) : AnyShapeStyle(tint.opacity(0.06)),
-                    in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay {
 
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(tint, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(tint, lineWidth: 1.2)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var capsuleLabel: some View {
