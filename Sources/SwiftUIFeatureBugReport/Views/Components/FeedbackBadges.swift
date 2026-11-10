@@ -6,31 +6,33 @@
 import SwiftUI
 
 /// 徽章统一样式：单行、按内容自适应宽度，不被父级压缩或换行。
+/// 采用小圆角矩形 + 淡色底，与列表卡片的投票方块在视觉上保持同一套语言。
 private extension View {
 
     func badgeStyle<S: ShapeStyle>(background: S, foreground: some ShapeStyle) -> some View {
 
         self
-            .font(.footnote.weight(.semibold))
+            .font(.caption.weight(.medium))
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: true)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 5)
-            .background(background, in: Capsule())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(background, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             .foregroundStyle(foreground)
     }
 }
 
 
-/// 徽章内图标与文字紧贴：系统 `Label` 的默认间距在小徽章里显得过大。
+/// 徽章内文字在前、图标在后且紧贴：系统 `Label` 的默认间距在小徽章里显得过大。
 private struct CompactBadgeLabelStyle: LabelStyle {
 
     func makeBody(configuration: Configuration) -> some View {
 
         HStack(spacing: 4) {
 
-            configuration.icon
             configuration.title
+            configuration.icon
+                .imageScale(.small)
         }
     }
 }
@@ -103,38 +105,36 @@ struct VoteButton: View {
     let isEnabled: Bool
     /// 为 true 时点击先弹出二次确认，确认后才执行 `action`（列表卡片上容易误触）。
     var confirms: Bool = false
+    /// 外观：`.capsule` 为行内胶囊（详情页等），`.tile` 为列表卡片左侧的竖向方块。
+    var style: Style = .capsule
     let action: () -> Void
 
+    enum Style { case capsule, tile }
+
     @State private var isConfirming = false
+    @State private var showsReadOnlyNotice = false
+
+    private var tint: Color { hasVoted ? .green : .accentColor }
 
     var body: some View {
 
-        Button(action: { if confirms { isConfirming = true } else { action() } }) {
+        // 按钮本身始终可点，不使用 `.disabled`：被禁用的按钮不再接收触摸，点按会穿透到父视图，
+        // 在列表卡片上就会触发整行的「进入详情」手势。不可投票时改为提示原因。
+        Button(action: handleTap) {
 
-            HStack(spacing: 4) {
+            switch style {
 
-                if isBusy {
-
-                    ProgressView()
-                        .controlSize(.small)
-                }
-                else {
-
-                    Image(systemName: hasVoted ? "hand.thumbsup.fill" : "hand.thumbsup")
-                }
-
-                Text(count.formatted(.number))
-                    .monospacedDigit()
+            case .capsule: capsuleLabel
+            case .tile: tileLabel
             }
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(hasVoted ? Color.green : Color.accentColor)
-            // 胶囊底色，让投票入口在行内更醒目、点击区域更大
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background((hasVoted ? Color.green : Color.accentColor).opacity(0.12), in: Capsule())
-            .contentShape(Capsule())
         }
-        .buttonStyle(.borderless)
+        // 按下时轻微缩小，给出触感反馈；非默认样式在 List 行内仍可独立点击
+        .buttonStyle(PressScaleButtonStyle())
+        // 投票状态、票数变化时的弹性动画
+        .animation(.spring(response: 0.35, dampingFraction: 0.65), value: hasVoted)
+        .animation(.snappy, value: count)
+        .animation(.easeInOut(duration: 0.2), value: isBusy)
+        .sensoryFeedback(.selection, trigger: hasVoted)
         .confirmationDialog(hasVoted ? L10n.t("feedback.badge.withdrawVoteConfirm") : L10n.t("feedback.badge.voteConfirm"),
                             isPresented: $isConfirming,
                             titleVisibility: .visible) {
@@ -144,13 +144,108 @@ struct VoteButton: View {
 
             Button(L10n.t("feedback.common.cancel"), role: .cancel) {}
         }
+        .alert(L10n.t("feedback.notice.readOnly"), isPresented: $showsReadOnlyNotice) {
+
+            Button(L10n.t("feedback.common.ok"), role: .cancel) {}
+
+        } message: { Text(L10n.t("feedback.notice.readOnlyDetail")) }
+        // 不可投票时视觉上置灰（但仍拦截点按，见上）。
         // Tappable while voted: the button toggles, so a mis-tap or a change of mind is recoverable.
-        .disabled(isBusy || !isEnabled)
+        .opacity(isEnabled ? 1 : 0.5)
         .accessibilityLabel(hasVoted
                             ? L10n.t("feedback.common.votedCount \(count)")
                             : L10n.t("feedback.common.voteActionCount \(count)"))
         .accessibilityHint(hasVoted ? L10n.t("feedback.badge.withdrawsHint") : L10n.t("feedback.badge.addsVoteHint"))
         .accessibilityAddTraits(hasVoted ? [.isSelected] : [])
+    }
+
+    private func handleTap() {
+
+        guard !isBusy else { return }
+
+        guard isEnabled else { showsReadOnlyNotice = true; return }
+
+        if confirms { isConfirming = true } else { action() }
+    }
+
+    /// 竖向方块：上箭头 + 紧凑计数（1.2K），描边圆角矩形；已投票时整块填充。
+    private var tileLabel: some View {
+
+        VStack(spacing: 2) {
+
+            // 箭头始终占位，加载指示叠加在上方，避免切换时计数上下跳动
+            Image(systemName: "chevron.up")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(hasVoted ? Color.white : tint)
+                .opacity(isBusy ? 0 : 1)
+                .symbolEffect(.bounce.up, value: hasVoted)
+                .overlay {
+
+                    if isBusy {
+
+                        ProgressView()
+                            .controlSize(.mini)
+                            .tint(hasVoted ? .white : tint)
+                    }
+                }
+
+            Text(count.formatted(.number.notation(.compactName)))
+                .contentTransition(.numericText(value: Double(count)))
+                .font(.footnote.weight(.semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .foregroundStyle(hasVoted ? Color.white : Color.primary)
+        }
+        .frame(width: 44, height: 48)
+        .background(hasVoted ? AnyShapeStyle(tint) : AnyShapeStyle(tint.opacity(0.06)),
+                    in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay {
+
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(tint, lineWidth: 1.5)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private var capsuleLabel: some View {
+
+        HStack(spacing: 4) {
+
+            if isBusy {
+
+                ProgressView()
+                    .controlSize(.small)
+            }
+            else {
+
+                Image(systemName: hasVoted ? "hand.thumbsup.fill" : "hand.thumbsup")
+            }
+
+            Text(count.formatted(.number))
+                .contentTransition(.numericText(value: Double(count)))
+                .monospacedDigit()
+        }
+        .font(.subheadline.weight(.medium))
+        .foregroundStyle(tint)
+        // 胶囊底色，让投票入口在行内更醒目、点击区域更大
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(tint.opacity(0.12), in: Capsule())
+        .contentShape(Capsule())
+    }
+}
+
+
+/// 按下缩小的按钮样式。
+private struct PressScaleButtonStyle: ButtonStyle {
+
+    func makeBody(configuration: Configuration) -> some View {
+
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.9 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 

@@ -54,6 +54,12 @@ public struct FeedbackBoardView: View {
     // so a value-based selection would silently drop each time the board refreshes.
     @State private var selection: CKRecord.ID?
 
+    #if !os(macOS)
+    /// iOS 上点按卡片后要推入的详情。用编程式导航代替行内隐藏的 `NavigationLink`：
+    /// 后者会让 List 把整行（包括投票方块）都当成跳转区域，点投票直接进了详情页。
+    @State private var openedRequestID: CKRecord.ID?
+    #endif
+
     #if os(macOS)
     /// Non-nil while a "more" destination has replaced the board (§ BoardDestination).
     @State private var destination: BoardDestination?
@@ -303,6 +309,13 @@ public struct FeedbackBoardView: View {
         List { listRows }
 #else
         List(selection: $selection) { listRows }
+            .navigationDestination(item: $openedRequestID) { id in
+
+                if let request = store.requests.requests.first(where: { $0.id == id }) {
+
+                    RequestDetailView(store: store, request: request, embedsNavigationStack: false)
+                }
+            }
 #endif
     }
     
@@ -370,7 +383,9 @@ public struct FeedbackBoardView: View {
         }
         else {
 
+            // 筛选、搜索或数据刷新导致行增删时，平滑插入与移除
             Section { ForEach(displayedRequests) { row(for: $0) } }
+                .animation(.snappy, value: displayedRequests.map(\.id))
         }
     }
 
@@ -411,26 +426,22 @@ public struct FeedbackBoardView: View {
         .accessibilityAddTraits(isSelected(request) ? [.isSelected] : [])
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
-        // 收紧卡片之间的上下间距
-        .listRowInsets(EdgeInsets(top: 3, leading: 8, bottom: 3, trailing: 8))
+        // 卡片之间不留上下间距
+        .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
         .rowActions { rowMenu(for: request) }
 #else
-        // 卡片样式：隐藏的 NavigationLink 垫在底下负责跳转，这样行尾不会出现系统箭头。
-        ZStack {
-
-            NavigationLink { RequestDetailView(store: store, request: request, embedsNavigationStack: false) }
-                label: { EmptyView() }
-                .opacity(0)
-
-            content
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(uiColor: .secondarySystemGroupedBackground),
-                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        }
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+        // 卡片样式：整行点按手势负责跳转（行尾不会出现系统箭头）。
+        // 投票方块是行内子按钮，手势优先级高于父视图的 onTapGesture，因此点它只会触发投票确认。
+        content
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { openedRequestID = request.id }
+            .accessibilityAction(named: L10n.t("feedback.common.showDetails")) { openedRequestID = request.id }
+        // 取消卡片间距：行与行紧贴，由分组列表绘制连续的圆角容器，行间用系统分隔线区分。
+        .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         .rowActions { rowMenu(for: request) }
 #endif
     }

@@ -225,7 +225,7 @@
 "feedback.status.open" = "待处理";
 "feedback.status.updatePending" = "待更新";
 "feedback.type.bug" = "缺陷";
-"feedback.type.feature" = "功能建议";
+"feedback.type.feature" = "功能";
 "feedback.updates.emptyMessage" = "你发布或投票过的反馈有变化时，会显示在这里。";
 "feedback.updates.emptyTitle" = "暂无更新";
 "feedback.updates.title" = "更新";

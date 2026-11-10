@@ -17,38 +17,42 @@ struct RequestRow: View {
 
     var body: some View {
 
-        // 卡片式布局：左侧为「类型 · 时间 / 标题 / 状态与标签」，投票胶囊固定在右上角。
+        // 卡片式布局：左侧为描边投票方块；右侧一列依次为标题、摘要、徽章行，
+        // 徽章与标题左对齐，文字列整体填满方块高度，避免方块下方出现大块留白。
         HStack(alignment: .top, spacing: 12) {
+
+            VoteButton(count: voteCount,
+                       hasVoted: hasVoted,
+                       isBusy: isVoting,
+                       isEnabled: canVote,
+                       confirms: true,
+                       style: .tile,
+                       action: onVote)
 
             VStack(alignment: .leading, spacing: 6) {
 
-                HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
 
-                    if showsType { TypeBadge(type: request.type) }
-
-                    Text(request.lastActivityAt, format: .relative(presentation: .named))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                Text(request.title)
-                    .font(.title3.weight(.semibold))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                if !request.body.isEmpty {
-
-                    Text(request.body)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Text(request.title)
+                        .font(.headline)
                         .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    if !request.body.isEmpty {
+
+                        Text(request.body)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
                 }
 
                 if hasChips {
 
                     // 标签过多时自动换行，而不是被截断
-                    ChipFlowLayout(spacing: 8) {
+                    ChipFlowLayout(spacing: 6) {
+
+                        if showsType { TypeBadge(type: request.type) }
 
                         if request.status == .complete { ResolvedVersionBadge(version: request.resolvedInVersion) }
                         else if request.status != .open { StatusBadge(status: request.status) }
@@ -64,25 +68,24 @@ struct RequestRow: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .transition(.opacity)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            VoteButton(count: voteCount,
-                       hasVoted: hasVoted,
-                       isBusy: isVoting,
-                       isEnabled: canVote,
-                       confirms: true,
-                       action: onVote)
+            // 首行标题与方块顶部视觉对齐：抵消字体行高带来的上方留白
+            .padding(.top, 1)
+            .frame(maxWidth: .infinity, minHeight: 48, alignment: .topLeading)
         }
-        .padding(.vertical, 2)
+        // 状态、标签变化时徽章平滑过渡
+        .animation(.snappy, value: request.status)
+        .animation(.snappy, value: request.labels)
         // The vote button stays its own element; the rest of the row reads as one label.
         .accessibilityElement(children: .contain)
     }
 
     private var hasChips: Bool {
 
-        !request.labels.isEmpty
+        showsType
+            || !request.labels.isEmpty
             || request.status != .open
             || request.moderation == .hidden
             || request.imageState == .pending
